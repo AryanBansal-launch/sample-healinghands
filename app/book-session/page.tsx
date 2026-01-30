@@ -76,7 +76,7 @@ export default function BookSessionPage() {
               Booking Request Received!
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Thank you for your interest. We'll contact you shortly to confirm your session.
+              Thank you for your interest. We&apos;ll contact you shortly to confirm your session.
             </p>
             <a
               href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello! I just submitted a booking request.')}`}

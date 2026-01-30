@@ -70,7 +70,7 @@ export default function WhyHealingHands() {
                   <span className="text-4xl">✨</span>
                 </div>
                 <p className="text-gray-600 italic">
-                  "Healing starts from within"
+                  &quot;Healing starts from within&quot;
                 </p>
               </div>
             </div>

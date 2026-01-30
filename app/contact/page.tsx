@@ -53,7 +53,7 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600">
-            We're here to support you on your healing journey
+            We&apos;re here to support you on your healing journey
           </p>
         </motion.div>
 
@@ -119,8 +119,8 @@ export default function ContactPage() {
             <div className="bg-gradient-to-br from-primary-100 to-lavender-100 rounded-2xl p-8">
               <Quote className="w-8 h-8 text-primary-600 mb-4" />
               <p className="text-lg italic text-gray-700 leading-relaxed">
-                "Healing is a journey of returning to yourself. Every step you take toward wellness
-                is a step toward your true nature—peaceful, balanced, and whole."
+                &quot;Healing is a journey of returning to yourself. Every step you take toward wellness
+                is a step toward your true nature—peaceful, balanced, and whole.&quot;
               </p>
             </div>
           </motion.div>
@@ -207,7 +207,7 @@ export default function ContactPage() {
                   className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3"
                 >
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <p className="text-green-800">Thank you! We'll get back to you soon.</p>
+                  <p className="text-green-800">Thank you! We&apos;ll get back to you soon.</p>
                 </motion.div>
               )}
 

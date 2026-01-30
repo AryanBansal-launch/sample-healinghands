@@ -96,17 +96,17 @@ export default function AboutPage() {
             <p>
               Healing Hands was born from a simple yet profound belief: everyone deserves to experience
               peace, clarity, and emotional balance. I have witnessed the transformative power of energy
-              healing in my own life and in the lives of those I've had the privilege to serve.
+              healing in my own life and in the lives of those I&apos;ve had the privilege to serve.
             </p>
             <p>
-              My approach is rooted in compassion, non-judgment, and respect for each individual's unique
+              My approach is rooted in compassion, non-judgment, and respect for each individual&apos;s unique
               healing journey. I understand that healing is not a one-size-fits-all process, which is why
               I take time to understand your specific needs and concerns.
             </p>
-            <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">A Message of Hope & Balance</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">A Message of Hope &amp; Balance</h3>
             <p>
-              If you're reading this, you may be seeking support, clarity, or a sense of peace. Know that
-              you are not alone. Whether you're dealing with stress, emotional challenges, relationship
+              If you&apos;re reading this, you may be seeking support, clarity, or a sense of peace. Know that
+              you are not alone. Whether you&apos;re dealing with stress, emotional challenges, relationship
               issues, or simply seeking to enhance your overall well-being, I am here to support you.
             </p>
             <p>

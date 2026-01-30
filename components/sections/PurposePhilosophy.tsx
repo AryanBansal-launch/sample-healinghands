@@ -40,8 +40,8 @@ export default function PurposePhilosophy() {
               you may be following.
             </p>
             <p>
-              Our mission is to help you feel <strong>lighter, calmer & aligned</strong> with your true
-              self. We understand that healing is a personal journey, and we're here to provide
+              Our mission is to help you feel <strong>lighter, calmer &amp; aligned</strong> with your true
+              self. We understand that healing is a personal journey, and we&apos;re here to provide
               compassionate support every step of the way.
             </p>
           </div>
