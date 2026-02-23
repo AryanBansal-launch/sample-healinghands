@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/deploy",
-      "schedule": "0 * * * *"
-    }
-  ]
-}
+
