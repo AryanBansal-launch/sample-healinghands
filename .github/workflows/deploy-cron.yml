@@ -1,0 +1,14 @@
+name: Hourly Deploy Trigger
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Deploy API
+        run: |
+          curl -X POST https://stag-azure-na-app.csnonprod.com/launch-api/manage/deploy/69988d67568d29753cfce086
