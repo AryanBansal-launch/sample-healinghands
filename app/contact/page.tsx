@@ -16,9 +16,9 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>
 
-const phoneNumber = '+91 98765 43210' // Replace with actual number
-const whatsappNumber = '919876543210' // Replace with actual number
-const email = 'info@healinghands.com' // Replace with actual email
+const phoneNumber = '+91 93557 33831' // Replace with actual number
+const whatsappNumber = '919355733831' // Replace with actual number
+const email = 'healinghandswithpreyanka@gmail.com' // Replace with actual email
 
 export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
@@ -177,7 +177,7 @@ export default function ContactPage() {
                   type="tel"
                   id="phone"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 93557 33831"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>

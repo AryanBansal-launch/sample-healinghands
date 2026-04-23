@@ -1,180 +1,183 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { ShoppingCart, MessageCircle, CheckCircle2, AlertCircle } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
+import { ShoppingCart, MessageCircle, CheckCircle, X } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { purchaseRequestSchema } from "@/lib/validators";
+import { buildPurchaseMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 
 export default function ShopPage() {
-  const [quantity, setQuantity] = useState(1)
-  const [showSuccess, setShowSuccess] = useState(false)
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
-  const handleBuyNow = () => {
-    // In a real app, this would integrate with a payment gateway
-    setShowSuccess(true)
-    setTimeout(() => setShowSuccess(false), 3000)
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset
+  } = useForm({
+    resolver: zodResolver(purchaseRequestSchema),
+  });
 
-  const price = 999 // Replace with actual price
-  const whatsappNumber = '919876543210' // Replace with actual number
-  const whatsappMessage = encodeURIComponent('Hello! I would like to purchase the Healing Bliss Aura Cleansing Spray.')
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  const openPurchaseModal = (product: any) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+    reset({
+      product: product._id,
+      productName: product.name,
+      quantity: quantity,
+      totalAmount: product.price * quantity,
+    });
+  };
+
+  const onSubmit = async (data: any) => {
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const address = `${data.shippingAddress.addressLine1}, ${data.shippingAddress.city}, ${data.shippingAddress.state} - ${data.shippingAddress.pincode}`;
+        const message = buildPurchaseMessage({
+          productName: data.productName,
+          quantity: data.quantity,
+          totalAmount: data.totalAmount,
+          customerName: data.customerName,
+          customerPhone: data.customerPhone,
+          shippingAddress: address,
+        });
+        const whatsappUrl = buildWhatsAppURL(message);
+        window.open(whatsappUrl, "_blank");
+        setIsModalOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen pt-32 text-center">Loading shop...</div>;
 
   return (
-    <div className="min-h-screen py-20 bg-gradient-to-br from-green-50 via-lavender-50 to-gold-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
-        >
-          <h1 className="font-serif text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-            Healing Bliss
-          </h1>
-          <p className="text-2xl text-gray-600">
-            Aromatherapy Aura Cleansing Spray
-          </p>
-        </motion.div>
+    <div className="min-h-screen bg-gray-50 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-6">Healing Shop</h1>
+          <p className="text-xl text-gray-600">Bring the healing energy home.</p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Product Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-white rounded-2xl shadow-xl p-4 md:p-8"
-          >
-            <div className="aspect-square relative rounded-xl overflow-hidden shadow-inner bg-gray-50">
-              <Image
-                src="/spray.jpeg"
-                alt="Healing Bliss Aura Cleansing Spray"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </motion.div>
-
-          {/* Product Details */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="space-y-6"
-          >
-            {/* Price */}
-            <div>
-              <p className="text-4xl font-bold text-gray-900 mb-2">
-                ₹{price.toLocaleString()}
-              </p>
-              <p className="text-gray-600">Inclusive of all taxes</p>
-            </div>
-
-            {/* Benefits */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Benefits</h3>
-              <ul className="space-y-3">
-                {[
-                  'Helps cleanse surrounding energy',
-                  'Supports calm & positivity',
-                  'Ideal for home, office & travel',
-                  'Natural aromatherapy blend',
-                  'Non-toxic and safe',
-                ].map((benefit) => (
-                  <li key={benefit} className="flex items-start space-x-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700">{benefit}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Usage Instructions */}
-            <div className="bg-white rounded-xl p-6 shadow-lg">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Usage Instructions</h3>
-              <ol className="space-y-2 text-gray-700 list-decimal list-inside">
-                <li>Shake the bottle gently before use</li>
-                <li>Spray 2-3 times in the air around you or your space</li>
-                <li>Allow the mist to settle naturally</li>
-                <li>Use as needed for energy cleansing</li>
-                <li>Store in a cool, dry place</li>
-              </ol>
-            </div>
-
-            {/* Safety Notes */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-amber-900 mb-2">Safety Notes</h4>
-                  <p className="text-sm text-amber-800">
-                    For external use only. Avoid contact with eyes. Keep out of reach of children.
-                    If irritation occurs, discontinue use and consult a healthcare professional.
-                  </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product) => (
+            <div key={product._id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+              <div className="relative aspect-square">
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h3>
+                <p className="text-gray-600 mb-6 line-clamp-2">{product.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
+                  <button
+                    onClick={() => openPurchaseModal(product)}
+                    className="bg-primary-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-primary-700 transition-colors flex items-center"
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-2" /> Buy Now
+                  </button>
                 </div>
               </div>
             </div>
-
-            {/* Quantity Selector */}
-            <div className="flex items-center space-x-4">
-              <label className="font-semibold text-gray-900">Quantity:</label>
-              <div className="flex items-center space-x-3 border border-gray-300 rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
-                >
-                  −
-                </button>
-                <span className="px-4 py-2 font-semibold">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-4 py-2 hover:bg-gray-100 transition-colors"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="space-y-4 pt-4">
-              <button
-                onClick={handleBuyNow}
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>Buy Now - ₹{(price * quantity).toLocaleString()}</span>
-              </button>
-              <a
-                href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full bg-[#25D366] hover:bg-[#20BA5A] text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>Talk on WhatsApp</span>
-              </a>
-            </div>
-
-            {/* Success Message */}
-            {showSuccess && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center space-x-3"
-              >
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                <p className="text-green-800">
-                  Thank you! Please contact us on WhatsApp to complete your purchase.
-                </p>
-              </motion.div>
-            )}
-          </motion.div>
+          ))}
         </div>
       </div>
-    </div>
-  )
-}
 
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            >
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h2 className="text-2xl font-serif font-bold">Complete Your Purchase</h2>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto">
+                <div className="bg-primary-50 p-4 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-gray-900">{selectedProduct?.name}</p>
+                    <p className="text-sm text-gray-600">Unit Price: ₹{selectedProduct?.price}</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      type="button"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center font-bold"
+                    > - </button>
+                    <span className="font-bold">{quantity}</span>
+                    <button 
+                      type="button"
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center font-bold"
+                    > + </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input {...register("customerName")} placeholder="Full Name" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                  <input {...register("customerEmail")} placeholder="Email Address" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                  <input {...register("customerPhone")} placeholder="Mobile Number" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                </div>
+
+                <div className="space-y-4">
+                  <p className="font-semibold text-gray-700">Shipping Address</p>
+                  <input {...register("shippingAddress.addressLine1")} placeholder="Address Line 1" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input {...register("shippingAddress.city")} placeholder="City" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                    <input {...register("shippingAddress.state")} placeholder="State" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                    <input {...register("shippingAddress.pincode")} placeholder="Pincode" className="w-full px-4 py-3 rounded-xl border border-gray-200" />
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+                  <div className="text-gray-600">
+                    Total Amount: <span className="text-2xl font-bold text-gray-900 ml-2">₹{selectedProduct?.price * quantity}</span>
+                  </div>
+                  <button type="submit" className="bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-primary-700 shadow-lg">
+                    Proceed to Purchase
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
