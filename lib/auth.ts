@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import dbConnect from "@/lib/mongodb";
 import Admin from "@/models/Admin";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,33 +13,42 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          throw new Error("Invalid credentials");
+        // Never throw from authorize — uncaught errors become 500 on /api/auth/* (Vercel).
+        // Return null for any failure; NextAuth surfaces CredentialsSignin to the client.
+        try {
+          if (!credentials?.username || !credentials?.password) {
+            return null;
+          }
+
+          await dbConnect();
+
+          const admin = await Admin.findOne({ username: credentials.username });
+
+          if (!admin) {
+            return null;
+          }
+
+          const isValid = bcrypt.compareSync(
+            credentials.password,
+            admin.passwordHash
+          );
+
+          if (!isValid) {
+            return null;
+          }
+
+          return {
+            id: admin._id.toString(),
+            name: admin.name || "Admin",
+            // NextAuth expects a string user id and often an email for the default User shape.
+            email: `${admin.username}@healinghands.admin`,
+            username: admin.username,
+            role: admin.role,
+          };
+        } catch (err) {
+          console.error("[auth] authorize failed:", err);
+          return null;
         }
-
-        await dbConnect();
-
-        const admin = await Admin.findOne({ username: credentials.username });
-
-        if (!admin) {
-          throw new Error("Invalid credentials");
-        }
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          admin.passwordHash
-        );
-
-        if (!isValid) {
-          throw new Error("Invalid credentials");
-        }
-
-        return {
-          id: admin._id.toString(),
-          name: admin.name,
-          username: admin.username,
-          role: admin.role,
-        };
       },
     }),
   ],
@@ -63,6 +72,8 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/admin/login",
+    // Avoid broken /api/auth/error HTML; send users back to login with ?error=...
+    error: "/admin/login",
   },
   session: {
     strategy: "jwt",

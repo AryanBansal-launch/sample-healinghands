@@ -1,15 +1,29 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const code = searchParams.get("error");
+    if (!code) return;
+    const messages: Record<string, string> = {
+      Configuration:
+        "Auth is misconfigured on the server. Set NEXTAUTH_SECRET and NEXTAUTH_URL in Vercel (Project → Settings → Environment Variables), then redeploy.",
+      AccessDenied: "Access denied.",
+      Verification: "The verification link has expired or was already used.",
+      Default: "Sign-in failed. Try again or contact support.",
+    };
+    setError(messages[code] || messages.Default);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,5 +111,19 @@ export default function AdminLoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <p className="text-gray-600">Loading…</p>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

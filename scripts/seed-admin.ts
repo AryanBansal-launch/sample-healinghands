@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import Admin from "../models/Admin";
 import dbConnect from "../lib/mongodb";
 import * as dotenv from "dotenv";
@@ -22,7 +22,7 @@ async function seedAdmin() {
     return;
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = bcrypt.hashSync(password, 10);
 
   const admin = new Admin({
     username,
