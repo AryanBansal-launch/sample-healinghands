@@ -3,8 +3,8 @@ import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import WhatsAppButton from '@/components/WhatsAppButton'
 import FeaturedBanner from '@/components/FeaturedBanner'
+import ChatbaseWidget from '@/components/ChatbaseWidget'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -42,7 +42,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
-        <WhatsAppButton />
+        <ChatbaseWidget />
       </body>
     </html>
   )
