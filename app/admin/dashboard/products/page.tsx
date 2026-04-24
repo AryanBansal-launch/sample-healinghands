@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema } from "@/lib/validators";
+import { adminProductSchema } from "@/lib/validators";
+import AdminImageUpload from "@/components/admin/AdminImageUpload";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,9 +22,10 @@ export default function AdminProductsPage() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(adminProductSchema),
     defaultValues: {
       name: "",
       slug: "",
@@ -55,9 +57,19 @@ export default function AdminProductsPage() {
     }
   };
 
+  const images = watch("images");
+
   const onSubmit = async (data: any) => {
     setSubmitting(true);
     try {
+      const payload = {
+        ...data,
+        benefits: data.benefits?.length ? data.benefits : [],
+        usageInstructions: data.usageInstructions?.length ? data.usageInstructions : [],
+        safetyNotes: data.safetyNotes ?? "",
+        images: data.images?.length ? data.images : ["/spray.jpeg"],
+      };
+
       const url = editingProduct
         ? `/api/admin/products/${editingProduct._id}`
         : "/api/admin/products";
@@ -66,18 +78,28 @@ export default function AdminProductsPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         fetchProducts();
         closeModal();
+      } else {
+        const errBody = await res.json().catch(() => ({}));
+        alert(errBody.error || `Save failed (${res.status})`);
       }
     } catch (err) {
       console.error(err);
+      alert("Network error while saving.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const onFormError = (errs: typeof errors) => {
+    const first = Object.values(errs)[0];
+    const msg = first && typeof first === "object" && "message" in first ? String(first.message) : null;
+    if (msg) alert(msg);
   };
 
   const handleDelete = async (id: string) => {
@@ -93,7 +115,21 @@ export default function AdminProductsPage() {
   const openModal = (product: any = null) => {
     if (product) {
       setEditingProduct(product);
-      reset(product);
+      reset({
+        name: product.name ?? "",
+        slug: product.slug ?? "",
+        description: product.description ?? "",
+        benefits: Array.isArray(product.benefits) ? product.benefits : [],
+        usageInstructions: Array.isArray(product.usageInstructions)
+          ? product.usageInstructions
+          : [],
+        safetyNotes: product.safetyNotes ?? "",
+        price: typeof product.price === "number" ? product.price : Number(product.price) || 0,
+        currency: product.currency || "INR",
+        images: product.images?.length ? product.images : ["/spray.jpeg"],
+        inStock: product.inStock !== false,
+        isActive: product.isActive !== false,
+      });
     } else {
       setEditingProduct(null);
       reset({
@@ -157,6 +193,7 @@ export default function AdminProductsPage() {
                 alt={product.name}
                 fill
                 className="object-cover"
+                unoptimized={String(product.images?.[0] || "").startsWith("http")}
               />
             </div>
             <div>
@@ -198,7 +235,7 @@ export default function AdminProductsPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto">
+            <form onSubmit={handleSubmit(onSubmit, onFormError)} className="p-8 space-y-6 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold">Product Name</label>
@@ -240,15 +277,40 @@ export default function AdminProductsPage() {
                 </div>
                 <div className="flex items-center space-x-8 pt-8">
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" {...register("inStock")} className="w-4 h-4 rounded text-primary-600" />
+                    <input
+                      type="checkbox"
+                      {...register("inStock", {
+                        setValueAs: (v: unknown) => v === true || v === "on",
+                      })}
+                      className="w-4 h-4 rounded text-primary-600"
+                    />
                     <span className="text-sm font-semibold">In Stock</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" {...register("isActive")} className="w-4 h-4 rounded text-primary-600" />
+                    <input
+                      type="checkbox"
+                      {...register("isActive", {
+                        setValueAs: (v: unknown) => v === true || v === "on",
+                      })}
+                      className="w-4 h-4 rounded text-primary-600"
+                    />
                     <span className="text-sm font-semibold">Active</span>
                   </label>
                 </div>
               </div>
+
+              <AdminImageUpload
+                label="Product image"
+                folder="healinghands/products"
+                value={(images && images[0]) || "/spray.jpeg"}
+                onChange={(url) =>
+                  setValue("images", [url], { shouldValidate: true, shouldDirty: true })
+                }
+                aspectClass="aspect-square w-full max-w-xs"
+              />
+              {errors.images && (
+                <p className="text-xs text-red-600">{errors.images.message as string}</p>
+              )}
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Safety Notes</label>

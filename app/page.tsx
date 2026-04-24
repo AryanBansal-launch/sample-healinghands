@@ -9,7 +9,7 @@ import PurposePhilosophy from '@/components/sections/PurposePhilosophy'
 import FinalCTA from '@/components/sections/FinalCTA'
 
 export const metadata: Metadata = {
-  title: 'Healing Hands - Energy Healing for a Calm, Balanced & Happy Life',
+  title: 'The Healing Hands - Energy Healing for a Calm, Balanced & Happy Life',
   description: 'Remote Pranic Healing • Aura Cleansing • Emotional & Mental Wellness. Experience healing energy for a calm, balanced & happy life.',
 }
 

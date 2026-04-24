@@ -34,7 +34,7 @@ export default function Sidebar() {
     <div className="w-64 bg-gray-900 min-h-screen text-white flex flex-col">
       <div className="p-6">
         <h1 className="text-xl font-serif font-bold text-primary-400">
-          Healing Hands Admin
+          The Healing Hands Admin
         </h1>
       </div>
       <nav className="flex-1 px-4 space-y-1">

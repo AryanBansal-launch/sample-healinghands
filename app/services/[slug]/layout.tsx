@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Service Details | Healing Hands",
+  title: "Service Details | The Healing Hands",
   description: "Detailed information about our specialized energy healing services.",
 };
 

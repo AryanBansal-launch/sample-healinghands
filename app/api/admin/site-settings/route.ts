@@ -1,4 +1,5 @@
 import { authOptions } from "@/lib/auth";
+import { FEATURED_BANNER_SETTING_DEFAULTS } from "@/lib/featured-banner-defaults";
 import dbConnect from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
 import { getServerSession } from "next-auth";
@@ -12,8 +13,22 @@ export async function GET() {
 
   try {
     await dbConnect();
-    const settings = await SiteSettings.find({});
-    return NextResponse.json(settings);
+    const settings = await SiteSettings.find({}).lean();
+    const fromDb: Record<string, string> = {};
+    for (const row of settings) {
+      if (row.key && typeof row.value === "string") {
+        fromDb[row.key] = row.value;
+      }
+    }
+    const keys = new Set([
+      ...Object.keys(fromDb),
+      ...Object.keys(FEATURED_BANNER_SETTING_DEFAULTS),
+    ]);
+    const merged = Array.from(keys).sort().map((key) => ({
+      key,
+      value: fromDb[key] ?? FEATURED_BANNER_SETTING_DEFAULTS[key] ?? "",
+    }));
+    return NextResponse.json(merged);
   } catch (error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

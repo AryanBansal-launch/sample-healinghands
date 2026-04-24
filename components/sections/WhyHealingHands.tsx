@@ -23,7 +23,7 @@ export default function WhyHealingHands() {
           className="text-center mb-16"
         >
           <h2 className="font-serif text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Why Healing Hands
+            Why The Healing Hands
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Trusted energy healing with a compassionate, experienced approach

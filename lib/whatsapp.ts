@@ -10,7 +10,7 @@ export function buildBookingApprovalMessage(booking: {
   preferredDate: string;
   preferredTime: string;
 }): string {
-  return `🙏 Namaste ${booking.fullName}! Your ${booking.service} session with Healing Hands has been confirmed for ${booking.preferredDate} at ${booking.preferredTime}. We look forward to supporting your healing journey. — Preyanka Jain, Healing Hands 🙏`;
+  return `🙏 Namaste ${booking.fullName}! Your ${booking.service} session with The Healing Hands has been confirmed for ${booking.preferredDate} at ${booking.preferredTime}. We look forward to supporting your healing journey. — Preyanka Jain, The Healing Hands 🙏`;
 }
 
 export function buildPurchaseMessage(purchase: {

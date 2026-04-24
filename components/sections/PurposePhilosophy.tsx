@@ -28,7 +28,7 @@ export default function PurposePhilosophy() {
         >
           <div className="space-y-6 text-gray-700 leading-relaxed text-lg">
             <p>
-              At Healing Hands, we believe in the power of energy healing to support your journey toward
+              At The Healing Hands, we believe in the power of energy healing to support your journey toward
               wellness. Our approach focuses on <strong>energy body cleansing</strong>, helping to remove
               accumulated stress, negative emotions, and energetic blockages that may be affecting your
               well-being.

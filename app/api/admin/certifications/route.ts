@@ -28,7 +28,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     await dbConnect();
-    const certification = new Certification(body);
+    const certification = new Certification({
+      title: body.title,
+      description: body.description,
+      certificateImage: body.certificateImage,
+      order: typeof body.order === "number" ? body.order : Number(body.order) || 0,
+      isActive: body.isActive !== false,
+    });
     await certification.save();
     return NextResponse.json(certification, { status: 201 });
   } catch (error) {

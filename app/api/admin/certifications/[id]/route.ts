@@ -17,7 +17,17 @@ export async function PUT(
     const { id } = params;
     const body = await req.json();
     await dbConnect();
-    const certification = await Certification.findByIdAndUpdate(id, body, { new: true });
+    const updates = {
+      title: body.title,
+      description: body.description,
+      certificateImage: body.certificateImage,
+      order: typeof body.order === "number" ? body.order : Number(body.order) || 0,
+      isActive: Boolean(body.isActive),
+    };
+    const certification = await Certification.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
     if (!certification) {
       return NextResponse.json({ error: "Certification not found" }, { status: 404 });
     }

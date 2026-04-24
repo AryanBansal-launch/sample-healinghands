@@ -4,6 +4,10 @@ import Product from "../models/Product";
 import Certification from "../models/Certification";
 import Testimonial from "../models/Testimonial";
 import SiteSettings from "../models/SiteSettings";
+import {
+  DEFAULT_FEATURED_BANNER_CONTENT,
+  DEFAULT_FEATURED_BANNER_ENABLED,
+} from "../lib/featured-banner-defaults";
 import PageContent from "../models/PageContent";
 import * as dotenv from "dotenv";
 import path from "path";
@@ -233,7 +237,9 @@ async function seedData() {
     { key: "phone", value: "9355733831" },
     { key: "email", value: "healinghandswithpreyanka@gmail.com" },
     { key: "whatsapp", value: "919355733831" },
-    { key: "tagline", value: "Healing starts from within" }
+    { key: "tagline", value: "Healing starts from within" },
+    { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
+    { key: "featuredBannerContent", value: DEFAULT_FEATURED_BANNER_CONTENT },
   ]);
 
   console.log("Data seeding completed!");

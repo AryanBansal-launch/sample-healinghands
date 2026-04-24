@@ -73,10 +73,40 @@ export const testimonialSchema = z.object({
   order: z.number().default(0),
 });
 
+/** Relative paths (/logo.jpeg) or https URLs (Cloudinary) */
+const imageRefSchema = z
+  .string()
+  .min(1, "Image is required")
+  .refine(
+    (s) => s.startsWith("/") || /^https?:\/\//i.test(s),
+    "Must be a site path (/) or a full image URL"
+  );
+
 export const certificationSchema = z.object({
   title: z.string().min(2),
   description: z.string().min(5),
-  certificateImage: z.string().url("Invalid image URL"),
-  order: z.number().default(0),
-  isActive: z.boolean().default(true),
+  certificateImage: imageRefSchema,
+  order: z.preprocess(
+    (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    },
+    z.number().int().min(0)
+  ),
+  isActive: z.boolean(),
+});
+
+/** Admin product form — optional lists, coerced booleans from checkboxes */
+export const adminProductSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().min(1, "Description is required"),
+  benefits: z.array(z.string()).default([]),
+  usageInstructions: z.array(z.string()).default([]),
+  safetyNotes: z.string().optional().default(""),
+  price: z.coerce.number().min(0),
+  currency: z.string().default("INR"),
+  images: z.array(z.string()).min(1, "Upload or keep at least one image"),
+  inStock: z.boolean(),
+  isActive: z.boolean(),
 });

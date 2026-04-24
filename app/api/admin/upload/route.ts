@@ -9,6 +9,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  ) {
+    return NextResponse.json(
+      { error: "Cloudinary is not configured. Set CLOUDINARY_* env vars." },
+      { status: 503 }
+    );
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;

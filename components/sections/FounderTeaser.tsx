@@ -21,7 +21,7 @@ export default function FounderTeaser() {
             <div className="aspect-[4/5] bg-gradient-to-br from-primary-200 to-lavender-200 rounded-3xl overflow-hidden shadow-2xl relative z-10">
               <Image
                 src="/banner2.jpeg"
-                alt="Preyanka Jain - Founder of Healing Hands"
+                alt="Preyanka Jain - Founder of The Healing Hands"
                 fill
                 className="object-cover"
               />

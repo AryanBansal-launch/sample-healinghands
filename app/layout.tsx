@@ -4,6 +4,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import FeaturedBanner from '@/components/FeaturedBanner'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -17,9 +18,14 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'Healing Hands - Energy Healing, Pranic Healing & Aura Cleansing',
+  title: 'The Healing Hands - Energy Healing, Pranic Healing & Aura Cleansing',
   description: 'Remote Pranic Healing, Aura Cleansing, Emotional & Mental Wellness Support. Experience healing energy for a calm, balanced & happy life.',
   keywords: 'energy healing, pranic healing, aura cleansing, remote healing, holistic wellness, emotional healing support',
+  icons: {
+    icon: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+    shortcut: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+    apple: [{ url: '/logo.jpeg', type: 'image/jpeg' }],
+  },
 }
 
 export default function RootLayout({
@@ -31,7 +37,8 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen">
         <Navbar />
-        <main className="pt-20">
+        <main className="pt-24 sm:pt-[5.75rem]">
+          <FeaturedBanner />
           {children}
         </main>
         <Footer />

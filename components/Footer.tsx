@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Sparkles className="w-6 h-6" />
-              <span className="font-serif text-xl font-semibold">Healing Hands</span>
+              <span className="font-serif text-xl font-semibold">The Healing Hands</span>
             </div>
             <p className="text-primary-100 mb-4 max-w-md">
               Energy Healing, Pranic Healing, Aura Cleansing & Holistic Wellness
@@ -106,7 +106,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-primary-700 text-center text-primary-200 text-sm">
-          <p>&copy; {new Date().getFullYear()} Healing Hands by Preyanka Jain. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} The Healing Hands by Preyanka Jain. All rights reserved.</p>
         </div>
       </div>
     </footer>

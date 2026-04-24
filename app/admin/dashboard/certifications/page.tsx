@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, X, Check, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { certificationSchema } from "@/lib/validators";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import AdminImageUpload from "@/components/admin/AdminImageUpload";
 
 export default function AdminCertificationsPage() {
   const [certs, setCerts] = useState<any[]>([]);
@@ -20,6 +21,8 @@ export default function AdminCertificationsPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(certificationSchema),
@@ -48,6 +51,8 @@ export default function AdminCertificationsPage() {
     }
   };
 
+  const certificateImage = watch("certificateImage");
+
   const onSubmit = async (data: any) => {
     setSubmitting(true);
     try {
@@ -65,12 +70,22 @@ export default function AdminCertificationsPage() {
       if (res.ok) {
         fetchCerts();
         closeModal();
+      } else {
+        const errBody = await res.json().catch(() => ({}));
+        alert(errBody.error || `Save failed (${res.status})`);
       }
     } catch (err) {
       console.error(err);
+      alert("Network error while saving.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const onFormError = (errs: typeof errors) => {
+    const first = Object.values(errs)[0];
+    const msg = first && typeof first === "object" && "message" in first ? String(first.message) : null;
+    if (msg) alert(msg);
   };
 
   const handleDelete = async (id: string) => {
@@ -86,7 +101,13 @@ export default function AdminCertificationsPage() {
   const openModal = (cert: any = null) => {
     if (cert) {
       setEditingCert(cert);
-      reset(cert);
+      reset({
+        title: cert.title ?? "",
+        description: cert.description ?? "",
+        certificateImage: cert.certificateImage || "/logo.jpeg",
+        order: typeof cert.order === "number" ? cert.order : Number(cert.order) || 0,
+        isActive: cert.isActive !== false,
+      });
     } else {
       setEditingCert(null);
       reset({
@@ -139,11 +160,12 @@ export default function AdminCertificationsPage() {
               </button>
             </div>
             <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
-              <Image 
-                src={cert.certificateImage || "/logo.jpeg"} 
-                alt={cert.title} 
-                fill 
-                className="object-cover" 
+              <Image
+                src={cert.certificateImage || "/logo.jpeg"}
+                alt={cert.title}
+                fill
+                className="object-cover"
+                unoptimized={String(cert.certificateImage || "").startsWith("http")}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -181,7 +203,10 @@ export default function AdminCertificationsPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto">
+              <form
+                onSubmit={handleSubmit(onSubmit, onFormError)}
+                className="p-8 space-y-6 overflow-y-auto"
+              >
                 <div className="space-y-2">
                   <label className="text-sm font-semibold">Certification Title</label>
                   <input
@@ -214,21 +239,29 @@ export default function AdminCertificationsPage() {
                   </div>
                   <div className="flex items-center space-x-8 pt-8">
                     <label className="flex items-center space-x-2 cursor-pointer">
-                      <input type="checkbox" {...register("isActive")} className="w-4 h-4 rounded text-primary-600" />
+                      <input
+                        type="checkbox"
+                        {...register("isActive", {
+                          setValueAs: (v: unknown) => v === true || v === "on",
+                        })}
+                        className="w-4 h-4 rounded text-primary-600"
+                      />
                       <span className="text-sm font-semibold">Active</span>
                     </label>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Certificate Image (Placeholder for now)</label>
-                  <input
-                    {...register("certificateImage")}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none bg-gray-50"
-                    readOnly
-                  />
-                  <p className="text-xs text-gray-500 italic">Manual image uploads will be enabled soon via Cloudinary.</p>
-                </div>
+                <input type="hidden" {...register("certificateImage")} />
+                <AdminImageUpload
+                  label="Certificate image"
+                  folder="healinghands/certifications"
+                  value={certificateImage || "/logo.jpeg"}
+                  onChange={(url) => setValue("certificateImage", url, { shouldValidate: true, shouldDirty: true })}
+                  aspectClass="aspect-video w-full max-w-md"
+                />
+                {errors.certificateImage && (
+                  <p className="text-xs text-red-600">{errors.certificateImage.message as string}</p>
+                )}
 
                 <div className="pt-6 border-t border-gray-100 flex justify-end space-x-4">
                   <button

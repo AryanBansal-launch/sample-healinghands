@@ -12,7 +12,7 @@ export default function Hero() {
       <div className="absolute inset-0 z-0">
         <Image
           src="/banner1.jpeg"
-          alt="Healing Hands Background"
+          alt="The Healing Hands background"
           fill
           className="object-cover opacity-30"
           priority

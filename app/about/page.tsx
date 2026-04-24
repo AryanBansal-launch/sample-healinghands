@@ -10,7 +10,7 @@ export default function AboutPage() {
       <div className="relative h-[40vh] w-full">
         <Image
           src="/banner4.jpeg"
-          alt="Healing Hands About Banner"
+          alt="The Healing Hands about banner"
           fill
           className="object-cover"
           priority
@@ -23,7 +23,7 @@ export default function AboutPage() {
             className="text-center text-white"
           >
             <h1 className="font-serif text-5xl md:text-6xl font-bold mb-4">
-              About Healing Hands
+              About The Healing Hands
             </h1>
             <p className="text-xl md:text-2xl font-light">
               A journey of healing, compassion, and transformation
@@ -76,7 +76,7 @@ export default function AboutPage() {
 
           <div className="prose prose-lg max-w-none space-y-6 text-gray-700 leading-relaxed">
             <p>
-              Welcome to Healing Hands. My name is Preyanka Jain, and I am honored to share my healing
+              Welcome to The Healing Hands. My name is Preyanka Jain, and I am honored to share my healing
               journey with you. What began as a personal calling has evolved into a deep commitment to
               supporting others on their path to wellness and balance.
             </p>
@@ -94,7 +94,7 @@ export default function AboutPage() {
             </p>
             <h3 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">My Purpose & Calling</h3>
             <p>
-              Healing Hands was born from a simple yet profound belief: everyone deserves to experience
+              The Healing Hands was born from a simple yet profound belief: everyone deserves to experience
               peace, clarity, and emotional balance. I have witnessed the transformative power of energy
               healing in my own life and in the lives of those I&apos;ve had the privilege to serve.
             </p>
