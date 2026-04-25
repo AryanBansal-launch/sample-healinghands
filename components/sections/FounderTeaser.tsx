@@ -18,21 +18,27 @@ export default function FounderTeaser() {
             transition={{ duration: 0.8 }}
             className="w-full md:w-1/2 relative"
           >
-            <div className="aspect-[4/5] bg-gradient-to-br from-primary-200 to-lavender-200 rounded-3xl overflow-hidden shadow-2xl relative z-10">
+            <div className="relative z-10 aspect-[4/5] overflow-hidden rounded-3xl shadow-2xl ring-1 ring-black/10">
               <Image
-                src="/banner2.jpeg"
-                alt="Preyanka Jain - Founder of The Healing Hands"
+                src="/founder/preyanka-m-jain.jpeg"
+                alt="Preyanka M Jain - Founder of The Healing Hands"
                 fill
-                className="object-cover"
+                className="object-cover object-[center_30%]"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/60 to-transparent">
-                <p className="text-white font-serif text-2xl font-bold">Preyanka Jain</p>
-                <p className="text-white/90 text-sm">Founder & Energy Healer</p>
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-t from-black/55 via-black/20 to-transparent"
+                aria-hidden
+              />
+              <div className="absolute bottom-0 left-0 right-0 z-10 p-8 pb-10 md:p-10 md:pb-12">
+                <p className="font-serif text-2xl font-bold tracking-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_2px_12px_rgba(0,0,0,0.5)] md:text-3xl">
+                  Preyanka M Jain
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.85)] md:text-base">
+                  Founder & Energy Healer
+                </p>
               </div>
             </div>
-            {/* Decorative background shape */}
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-gold-100/50 rounded-full blur-3xl -z-0" />
-            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-primary-100/50 rounded-full blur-3xl -z-0" />
           </motion.div>
 
           {/* Content Side */}
@@ -52,7 +58,7 @@ export default function FounderTeaser() {
                 clarity, and transformation.&quot;
               </p>
               <p>
-                Welcome, I am Preyanka Jain. My journey into energy healing started with a desire to
+                Welcome, I am Preyanka M Jain. My journey into energy healing started with a desire to
                 understand the subtle energies that influence our well-being. Today, I am dedicated to
                 helping you restore balance and find inner peace through compassionate support.
               </p>

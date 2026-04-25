@@ -9,37 +9,97 @@ import { CheckCircle } from "lucide-react";
 
 export default function BookSessionPage() {
   const [services, setServices] = useState<any[]>([]);
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(bookingSchema),
   });
 
+  const preferredDate = watch("preferredDate");
+  const preferredTime = watch("preferredTime");
+  const dateReady =
+    Boolean(preferredDate) && /^\d{4}-\d{2}-\d{2}/.test(String(preferredDate).trim());
+
   useEffect(() => {
     fetch("/api/services")
       .then((res) => res.json())
-      .then((data) => setServices(data))
+      .then((data) => setServices(Array.isArray(data) ? data : []))
       .catch((err) => console.error(err));
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!dateReady) {
+      setTimeSlots([]);
+      setSlotsLoading(false);
+      setValue("preferredTime", "");
+      return () => {
+        cancelled = true;
+      };
+    }
+    const loadSlots = async () => {
+      setValue("preferredTime", "");
+      setSlotsLoading(true);
+      try {
+        const url = `/api/booking-slots?date=${encodeURIComponent(String(preferredDate).slice(0, 10))}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!cancelled) {
+          setTimeSlots(Array.isArray(data.slots) ? data.slots : []);
+        }
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setTimeSlots([]);
+      } finally {
+        if (!cancelled) setSlotsLoading(false);
+      }
+    };
+    loadSlots();
+    return () => {
+      cancelled = true;
+    };
+  }, [preferredDate, dateReady, setValue]);
+
+  useEffect(() => {
+    if (!preferredTime || !timeSlots.length) return;
+    const ok = timeSlots.some((t) => t.trim() === String(preferredTime).trim());
+    if (!ok) setValue("preferredTime", "");
+  }, [timeSlots, preferredTime, setValue]);
+
   const onSubmit = async (data: any) => {
     setLoading(true);
+    setSubmitError(null);
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      const body = await res.json().catch(() => ({}));
       if (res.ok) {
         setSubmitted(true);
+        return;
       }
+      const msg =
+        typeof body.error === "string"
+          ? body.error
+          : Array.isArray(body.error)
+            ? body.error.map((e: { message?: string }) => e.message).filter(Boolean).join(". ")
+            : "Could not submit your request. Please try again.";
+      setSubmitError(msg || "Submission failed.");
     } catch (err) {
       console.error(err);
+      setSubmitError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -139,22 +199,52 @@ export default function BookSessionPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
                 <select
                   {...register("preferredTime")}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  disabled={slotsLoading || !dateReady || timeSlots.length === 0}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:cursor-not-allowed disabled:bg-gray-100"
                 >
-                  <option value="">Select time</option>
-                  <option value="9:00 AM">9:00 AM</option>
-                  <option value="10:00 AM">10:00 AM</option>
-                  <option value="11:00 AM">11:00 AM</option>
-                  <option value="12:00 PM">12:00 PM</option>
-                  <option value="2:00 PM">2:00 PM</option>
-                  <option value="3:00 PM">3:00 PM</option>
-                  <option value="4:00 PM">4:00 PM</option>
-                  <option value="5:00 PM">5:00 PM</option>
-                  <option value="6:00 PM">6:00 PM</option>
+                  <option value="">
+                    {!dateReady
+                      ? "Select a date first…"
+                      : slotsLoading
+                        ? "Loading times…"
+                        : timeSlots.length === 0
+                          ? "No slots — contact us"
+                          : "Select time"}
+                  </option>
+                  {timeSlots.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
                 </select>
-                {errors.preferredTime && <p className="mt-1 text-xs text-red-500">{errors.preferredTime.message as string}</p>}
+                {errors.preferredTime && (
+                  <p className="mt-1 text-xs text-red-500">{errors.preferredTime.message as string}</p>
+                )}
+                {!slotsLoading && timeSlots.length === 0 && (
+                  <p className="mt-1 text-xs text-amber-700">
+                    {preferredDate && String(preferredDate).trim()
+                      ? "No open slots left on this date (or none configured). Try another date, or use "
+                      : "No time slots are configured yet. Please use "}
+                    <a href="/contact" className="font-semibold underline">
+                      Contact
+                    </a>
+                    {preferredDate && String(preferredDate).trim() ? " to request a time." : " to arrange a session."}
+                  </p>
+                )}
+                {!slotsLoading && timeSlots.length > 0 && preferredDate && String(preferredDate).trim() && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Only times still available for this date are listed. A pending or confirmed booking
+                    removes that slot for the day (rejecting a request frees it again).
+                  </p>
+                )}
               </div>
             </div>
+
+            {submitError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {submitError}
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Your Concerns</label>

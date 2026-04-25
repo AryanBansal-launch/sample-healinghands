@@ -8,6 +8,13 @@ const TestimonialSchema = new Schema(
     rating: { type: Number, min: 1, max: 5 },
     isActive: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
+    /** `customer` = submitted via site; pending until admin sets isActive */
+    source: {
+      type: String,
+      enum: ["admin", "customer"],
+      default: "admin",
+    },
+    submitterEmail: { type: String, default: "" },
   },
   { timestamps: true }
 );

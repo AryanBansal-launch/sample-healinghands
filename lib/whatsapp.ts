@@ -1,7 +1,21 @@
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919355733831";
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919217046526";
 
 export function buildWhatsAppURL(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+/** Strip non-digits; add India country code when the number is 10 digits (mobile). */
+export function normalizePhoneForWaMe(raw: string): string {
+  let digits = raw.replace(/\D/g, "");
+  while (digits.startsWith("0")) digits = digits.slice(1);
+  if (digits.length === 10 && /^[6-9]\d{9}$/.test(digits)) digits = `91${digits}`;
+  return digits;
+}
+
+/** Opens a chat with the customer (e.g. booking confirmation). Not the business inbox. */
+export function buildCustomerWhatsAppURL(phone: string, message: string): string {
+  const num = normalizePhoneForWaMe(phone);
+  return `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
 }
 
 export function buildBookingApprovalMessage(booking: {
@@ -10,7 +24,7 @@ export function buildBookingApprovalMessage(booking: {
   preferredDate: string;
   preferredTime: string;
 }): string {
-  return `🙏 Namaste ${booking.fullName}! Your ${booking.service} session with The Healing Hands has been confirmed for ${booking.preferredDate} at ${booking.preferredTime}. We look forward to supporting your healing journey. — Preyanka Jain, The Healing Hands 🙏`;
+  return `🙏 Namaste ${booking.fullName}! Your ${booking.service} session with The Healing Hands has been confirmed for ${booking.preferredDate} at ${booking.preferredTime}. We look forward to supporting your healing journey. — Preyanka M Jain, The Healing Hands 🙏`;
 }
 
 export function buildPurchaseMessage(purchase: {

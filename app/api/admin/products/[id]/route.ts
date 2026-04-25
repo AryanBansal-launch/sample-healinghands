@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/mongodb";
+import { normalizeProductImageUrl } from "@/lib/normalizeProductImages";
 import Product from "@/models/Product";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -17,6 +18,12 @@ export async function PUT(
     const { id } = params;
     const body = await req.json();
     await dbConnect();
+    const stockLeft = Math.max(
+      0,
+      Math.floor(
+        typeof body.stockLeft === "number" ? body.stockLeft : Number(body.stockLeft) || 0
+      )
+    );
     const updates = {
       name: body.name,
       slug: body.slug,
@@ -28,8 +35,11 @@ export async function PUT(
       safetyNotes: body.safetyNotes ?? "",
       price: typeof body.price === "number" ? body.price : Number(body.price) || 0,
       currency: body.currency || "INR",
-      images: Array.isArray(body.images) ? body.images : [],
-      inStock: Boolean(body.inStock),
+      images: Array.isArray(body.images)
+        ? body.images.map((u: string) => normalizeProductImageUrl(String(u)))
+        : [],
+      stockLeft,
+      inStock: stockLeft > 0,
       isActive: Boolean(body.isActive),
     };
     const product = await Product.findByIdAndUpdate(id, updates, {

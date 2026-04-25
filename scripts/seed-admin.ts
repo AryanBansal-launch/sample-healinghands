@@ -12,7 +12,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 async function seedAdmin() {
   const username = process.env.ADMIN_USERNAME || "admin";
   const password = process.env.ADMIN_PASSWORD || "admin";
-  const name = "Preyanka Jain";
+  const name = "Preyanka M Jain";
 
   await dbConnect();
 

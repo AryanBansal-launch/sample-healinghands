@@ -4,17 +4,129 @@ import Product from "../models/Product";
 import Certification from "../models/Certification";
 import Testimonial from "../models/Testimonial";
 import SiteSettings from "../models/SiteSettings";
+import { BOOKING_SLOTS_SETTING_DEFAULTS } from "../lib/booking-time-slots";
 import {
   DEFAULT_FEATURED_BANNER_CONTENT,
   DEFAULT_FEATURED_BANNER_ENABLED,
 } from "../lib/featured-banner-defaults";
-import PageContent from "../models/PageContent";
+import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import path from "path";
 
 // Load environment variables from .env or .env.local
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+/** Collections this script can seed (others, e.g. bookings, are never touched). */
+const SEEDABLE = [
+  "services",
+  "products",
+  "certifications",
+  "testimonials",
+  "sitesettings",
+] as const;
+type SeedableCollection = (typeof SEEDABLE)[number];
+
+const SITE_SETTINGS_DEFAULTS: { key: string; value: string }[] = [
+  { key: "phone", value: "9355733831" },
+  { key: "email", value: "healinghandswithpreyanka@gmail.com" },
+  { key: "whatsapp", value: "919217046526" },
+  { key: "tagline", value: "Healing starts from within" },
+  { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
+  { key: "featuredBannerContent", value: DEFAULT_FEATURED_BANNER_CONTENT },
+  { key: "bookingTimeSlots", value: BOOKING_SLOTS_SETTING_DEFAULTS.bookingTimeSlots },
+];
+
+function normalizeCollectionName(raw: string): SeedableCollection | null {
+  const s = raw.trim().toLowerCase().replace(/_/g, "");
+  const map: Record<string, SeedableCollection> = {
+    services: "services",
+    service: "services",
+    products: "products",
+    product: "products",
+    certifications: "certifications",
+    certification: "certifications",
+    certs: "certifications",
+    testimonials: "testimonials",
+    testimonial: "testimonials",
+    sitesettings: "sitesettings",
+    sitesetting: "sitesettings",
+    settings: "sitesettings",
+    site: "sitesettings",
+  };
+  return map[s] ?? null;
+}
+
+function parseTargetCollections(): SeedableCollection[] | "help" | "error" {
+  const argv = process.argv.slice(2);
+  if (argv.length === 0 || argv.includes("--help") || argv.includes("-h")) {
+    return "help";
+  }
+
+  if (argv.includes("--all")) {
+    if (argv.some((a) => a === "--only" || a.startsWith("--only="))) {
+      console.error("Cannot combine --all with --only.");
+      return "error";
+    }
+    return Array.from(SEEDABLE);
+  }
+
+  const onlyParts: string[] = [];
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--only" && argv[i + 1] && !argv[i + 1].startsWith("-")) {
+      onlyParts.push(...argv[i + 1].split(","));
+      i++;
+    } else if (a.startsWith("--only=")) {
+      onlyParts.push(...a.slice("--only=".length).split(","));
+    }
+  }
+
+  if (onlyParts.length === 0) {
+    console.error("Missing --only <names> or use --all. Try: npx tsx scripts/seed-data.ts --help");
+    return "error";
+  }
+
+  const out = new Set<SeedableCollection>();
+  for (const part of onlyParts) {
+    const n = normalizeCollectionName(part);
+    if (!n) {
+      console.error(`Unknown collection "${part.trim()}". Valid: ${SEEDABLE.join(", ")}`);
+      return "error";
+    }
+    out.add(n);
+  }
+  return Array.from(out);
+}
+
+function printHelp() {
+  console.log(`
+Healing Hands — seed data (MongoDB)
+
+This script only touches the collections you choose. It does NOT modify
+bookings, purchases, users, page content, or any other collections.
+
+Usage:
+  npx tsx scripts/seed-data.ts --only <collection>[,<collection>...]
+  npx tsx scripts/seed-data.ts --all
+
+Collections:
+  services        Replace all Service documents with seed list
+  products        Replace all Product documents with seed list
+  certifications  Replace all Certification documents with seed list
+  testimonials    Replace all Testimonial documents with seed list
+  sitesettings      Upsert default site keys (phone, banner, booking time slots, etc.); does not delete other keys
+
+Examples:
+  npx tsx scripts/seed-data.ts --only services
+  npx tsx scripts/seed-data.ts --only products,services
+  npx tsx scripts/seed-data.ts --all
+
+Note: --only services (etc.) runs deleteMany on that collection, then insertMany — same
+as before for that collection only. Use --all to reset every seedable collection at once.
+For site settings, defaults are merged by key (safe alongside custom admin keys).
+`);
+}
 
 const services = [
   {
@@ -169,30 +281,61 @@ const products = [
     ],
     safetyNotes: "For external use only. Keep away from eyes.",
     price: 999,
-    images: ["/spray.jpeg"],
+    images: ["/products/spray.jpeg"],
+    stockLeft: 50,
     inStock: true,
   }
 ];
 
 const certifications = [
   {
-    title: "Pranic Healer",
-    description: "Certified in Pranic Healing techniques for energy body cleansing and restoration.",
-    certificateImage: "/logo.jpeg", // Placeholder since we don't have actual certificate images
+    _id: new mongoose.Types.ObjectId("69ebac5f136592ef3c982053"),
+    title: "MASTER CHOA KOK SUI PRANIC PSYCHOTHERAPY COURSE",
+    description:
+      "Certified in Pranic Healing techniques for energy body cleansing and restoration.",
+    certificateImage:
+      "https://res.cloudinary.com/dxf4feuve/image/upload/v1777053871/healinghands/certifications/xykwi6gw2qvkqypxokzr.jpg",
     order: 1,
+    isActive: true,
+    createdAt: new Date("2026-04-24T17:46:07.177Z"),
+    updatedAt: new Date("2026-04-24T18:04:34.385Z"),
   },
   {
-    title: "Crystal Healing",
-    description: "Trained in crystal healing modalities for chakra balancing and energy work.",
-    certificateImage: "/logo.jpeg",
+    _id: new mongoose.Types.ObjectId("69ebac5f136592ef3c982054"),
+    title: "MASTER CHOA KOK SUI ARHATIC YOGA® PREPARATORY LEVEL",
+    description:
+      "Trained in crystal healing modalities for chakra balancing and energy work.",
+    certificateImage:
+      "https://res.cloudinary.com/dxf4feuve/image/upload/v1777053913/healinghands/certifications/kwtjqan9o0husr5xfsti.jpg",
     order: 2,
+    isActive: true,
+    createdAt: new Date("2026-04-24T17:46:07.177Z"),
+    updatedAt: new Date("2026-04-24T18:05:16.175Z"),
   },
   {
-    title: "Yoga Trainer",
-    description: "Certified yoga instructor specializing in therapeutic and healing practices.",
-    certificateImage: "/logo.jpeg",
+    _id: new mongoose.Types.ObjectId("69ebac5f136592ef3c982055"),
+    title: "MASTER CHOA KOK SUI ACHIEVING ONENESS WITH THE HIGHER SOUL®",
+    description:
+      "Certified yoga instructor specializing in therapeutic and healing practices.",
+    certificateImage:
+      "https://res.cloudinary.com/dxf4feuve/image/upload/v1777053952/healinghands/certifications/uvuf8ew37h1itqe6tfyp.jpg",
     order: 3,
-  }
+    isActive: true,
+    createdAt: new Date("2026-04-24T17:46:07.177Z"),
+    updatedAt: new Date("2026-04-24T18:05:56.934Z"),
+  },
+  {
+    _id: new mongoose.Types.ObjectId("69ebb1354005db88d9c83492"),
+    title: "MASTER CHOA KOK SUI PRANIC CRYSTAL HEALING COURSE®",
+    description:
+      "Certified in Pranic Healing techniques for energy body cleansing and restoration.",
+    certificateImage:
+      "https://res.cloudinary.com/dxf4feuve/image/upload/v1777054002/healinghands/certifications/gsd8zl2dx7dpvs5fqrar.jpg",
+    order: 4,
+    isActive: true,
+    createdAt: new Date("2026-04-24T18:06:45.984Z"),
+    updatedAt: new Date("2026-04-24T18:06:45.984Z"),
+  },
 ];
 
 const testimonials = [
@@ -202,6 +345,8 @@ const testimonials = [
     tagline: "Emotional relief and peace",
     rating: 5,
     order: 1,
+    source: "admin",
+    isActive: true,
   },
   {
     clientName: "R.P.",
@@ -209,43 +354,86 @@ const testimonials = [
     tagline: "Reduced stress & improved balance",
     rating: 5,
     order: 2,
-  }
+    source: "admin",
+    isActive: true,
+  },
 ];
 
-async function seedData() {
-  await dbConnect();
-
+async function seedServices() {
   console.log("Seeding services...");
   await Service.deleteMany({});
   await Service.insertMany(services);
+}
 
+async function seedProducts() {
   console.log("Seeding products...");
   await Product.deleteMany({});
   await Product.insertMany(products);
+}
 
+async function seedCertifications() {
   console.log("Seeding certifications...");
   await Certification.deleteMany({});
   await Certification.insertMany(certifications);
+}
 
+async function seedTestimonials() {
   console.log("Seeding testimonials...");
   await Testimonial.deleteMany({});
   await Testimonial.insertMany(testimonials);
-
-  console.log("Seeding site settings...");
-  await SiteSettings.deleteMany({});
-  await SiteSettings.insertMany([
-    { key: "phone", value: "9355733831" },
-    { key: "email", value: "healinghandswithpreyanka@gmail.com" },
-    { key: "whatsapp", value: "919355733831" },
-    { key: "tagline", value: "Healing starts from within" },
-    { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
-    { key: "featuredBannerContent", value: DEFAULT_FEATURED_BANNER_CONTENT },
-  ]);
-
-  console.log("Data seeding completed!");
 }
 
-seedData()
+async function seedSiteSettings() {
+  console.log("Seeding site settings (upsert keys only)...");
+  for (const row of SITE_SETTINGS_DEFAULTS) {
+    await SiteSettings.findOneAndUpdate(
+      { key: row.key },
+      { $set: { value: row.value } },
+      { upsert: true }
+    );
+  }
+}
+
+async function seedSelected(targets: SeedableCollection[]) {
+  await dbConnect();
+  console.log(`Running seed for: ${targets.join(", ")}`);
+  for (const name of targets) {
+    switch (name) {
+      case "services":
+        await seedServices();
+        break;
+      case "products":
+        await seedProducts();
+        break;
+      case "certifications":
+        await seedCertifications();
+        break;
+      case "testimonials":
+        await seedTestimonials();
+        break;
+      case "sitesettings":
+        await seedSiteSettings();
+        break;
+      default:
+        break;
+    }
+  }
+  console.log("Done.");
+}
+
+async function main() {
+  const parsed = parseTargetCollections();
+  if (parsed === "help") {
+    printHelp();
+    process.exit(0);
+  }
+  if (parsed === "error") {
+    process.exit(1);
+  }
+  await seedSelected(parsed);
+}
+
+main()
   .then(() => process.exit(0))
   .catch((err) => {
     console.error("Error seeding data:", err);

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "tsx scripts/seed-data.ts",
+    "seed:all": "tsx scripts/seed-data.ts --all"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",

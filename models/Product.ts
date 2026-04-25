@@ -11,6 +11,8 @@ const ProductSchema = new Schema(
     price: { type: Number, required: true },
     currency: { type: String, default: "INR" },
     images: [{ type: String }],
+    /** Units remaining; `inStock` should stay in sync (true when stockLeft > 0). */
+    stockLeft: { type: Number, default: 0, min: 0 },
     inStock: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
   },

@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/spray.jpeg",
+        destination: "/products/spray.jpeg",
+        permanent: true,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

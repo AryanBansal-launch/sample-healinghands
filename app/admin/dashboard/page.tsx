@@ -44,7 +44,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-serif font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-600">Welcome back, Preyanka Jain</p>
+        <p className="text-gray-600">Welcome back, Preyanka M Jain</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

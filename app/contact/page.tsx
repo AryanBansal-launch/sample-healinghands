@@ -16,8 +16,9 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>
 
-const phoneNumber = '+91 93557 33831' // Replace with actual number
-const whatsappNumber = '919355733831' // Replace with actual number
+const phonePrimary = '+91 93557 33831'
+const phoneSecondary = '+91 92170 46526'
+const whatsappNumber = "919217046526";
 const email = 'healinghandswithpreyanka@gmail.com' // Replace with actual email
 
 export default function ContactPage() {
@@ -70,16 +71,24 @@ export default function ContactPage() {
                 Contact Information
               </h2>
               <div className="space-y-6">
-                <a
-                  href={`tel:${phoneNumber.replace(/\s/g, '')}`}
-                  className="flex items-start space-x-4 p-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow group"
-                >
+                <div className="flex items-start space-x-4 p-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow group">
                   <Phone className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform" />
-                  <div>
+                  <div className="space-y-2">
                     <p className="font-semibold text-gray-900">Phone</p>
-                    <p className="text-gray-600">{phoneNumber}</p>
+                    <a
+                      href="tel:+919355733831"
+                      className="block text-gray-600 hover:text-primary-700 transition-colors"
+                    >
+                      {phonePrimary}
+                    </a>
+                    <a
+                      href="tel:+919217046526"
+                      className="block text-gray-600 hover:text-primary-700 transition-colors"
+                    >
+                      {phoneSecondary}
+                    </a>
                   </div>
-                </a>
+                </div>
 
                 <a
                   href={`https://wa.me/${whatsappNumber}`}
@@ -90,7 +99,7 @@ export default function ContactPage() {
                   <MessageCircle className="w-6 h-6 text-[#25D366] flex-shrink-0 mt-1 group-hover:scale-110 transition-transform" />
                   <div>
                     <p className="font-semibold text-gray-900">WhatsApp</p>
-                    <p className="text-gray-600">Click to chat</p>
+                    <p className="text-gray-600">{phoneSecondary} · Click to chat</p>
                   </div>
                 </a>
 
@@ -177,7 +186,7 @@ export default function ContactPage() {
                   type="tel"
                   id="phone"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="+91 93557 33831"
+                  placeholder="+91 93557 33831 or +91 92170 46526"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>

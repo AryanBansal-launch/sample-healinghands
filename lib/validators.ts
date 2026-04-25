@@ -32,6 +32,7 @@ export const productSchema = z.object({
   price: z.number().min(0),
   currency: z.string().default("INR"),
   images: z.array(z.string()),
+  stockLeft: z.number().int().min(0).default(0),
   inStock: z.boolean().default(true),
   isActive: z.boolean().default(true),
 });
@@ -42,7 +43,7 @@ export const bookingSchema = z.object({
   phone: z.string().min(10, "Phone number is required"),
   service: z.string().min(1, "Service is required"),
   preferredDate: z.string().or(z.date()),
-  preferredTime: z.string(),
+  preferredTime: z.string().min(1, "Please select a time slot"),
   concerns: z.string().min(5, "Please share your concerns"),
 });
 
@@ -64,16 +65,42 @@ export const purchaseRequestSchema = z.object({
   totalAmount: z.number(),
 });
 
+/** Public testimonials page — submissions await admin approval */
+export const testimonialPublicSubmitSchema = z.object({
+  clientName: z.string().trim().min(2, "Name must be at least 2 characters").max(80),
+  quote: z
+    .string()
+    .trim()
+    .min(20, "Please write at least a few sentences (20 characters minimum)")
+    .max(2000),
+  tagline: z
+    .string()
+    .trim()
+    .min(3, "Add a short headline (e.g. what shifted for you)")
+    .max(120),
+  rating: z.coerce.number().min(1).max(5).default(5),
+  email: z.string().trim().max(120).optional(),
+}).superRefine((data, ctx) => {
+  if (data.email && data.email.length > 0) {
+    const r = z.string().email().safeParse(data.email);
+    if (!r.success) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid email address", path: ["email"] });
+    }
+  }
+});
+
 export const testimonialSchema = z.object({
   clientName: z.string().min(2),
   quote: z.string().min(10),
   tagline: z.string().min(5),
-  rating: z.number().min(1).max(5).optional(),
+  rating: z.coerce.number().min(1).max(5).optional(),
   isActive: z.boolean().default(true),
-  order: z.number().default(0),
+  order: z.coerce.number().default(0),
+  source: z.enum(["admin", "customer"]).optional(),
+  submitterEmail: z.string().max(120).optional(),
 });
 
-/** Relative paths (/logo.jpeg) or https URLs (Cloudinary) */
+/** Relative paths (/logo.jpeg, /banners/..., /products/...) or https URLs (Cloudinary) */
 const imageRefSchema = z
   .string()
   .min(1, "Image is required")
@@ -106,7 +133,10 @@ export const adminProductSchema = z.object({
   safetyNotes: z.string().optional().default(""),
   price: z.coerce.number().min(0),
   currency: z.string().default("INR"),
-  images: z.array(z.string()).min(1, "Upload or keep at least one image"),
-  inStock: z.boolean(),
+  images: z
+    .array(z.string().min(1, "Image URL cannot be empty"))
+    .min(1, "Add at least one product image"),
+  /** 0 = out of stock (Buy now disabled). Stored as `stockLeft`; `inStock` is derived when saving. */
+  stockLeft: z.coerce.number().int().min(0, "Stock cannot be negative"),
   isActive: z.boolean(),
 });

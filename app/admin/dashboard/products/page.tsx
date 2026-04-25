@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, ChevronUp, ChevronDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminProductSchema } from "@/lib/validators";
@@ -36,7 +36,7 @@ export default function AdminProductsPage() {
       price: 0,
       currency: "INR",
       images: [] as string[],
-      inStock: true,
+      stockLeft: 10,
       isActive: true,
     },
   });
@@ -57,7 +57,33 @@ export default function AdminProductsPage() {
     }
   };
 
-  const images = watch("images");
+  const images = watch("images") as string[] | undefined;
+  const imageSlots =
+    images && images.length > 0 ? images : ["/products/spray.jpeg"];
+
+  const setImages = (next: string[]) => {
+    setValue("images", next, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const addImageSlot = () => {
+    const base = images && images.length > 0 ? [...images] : ["/products/spray.jpeg"];
+    setImages([...base, "/products/spray.jpeg"]);
+  };
+
+  const removeImageAt = (index: number) => {
+    const base = images && images.length > 0 ? [...images] : ["/products/spray.jpeg"];
+    if (base.length <= 1) return;
+    setImages(base.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const base = images && images.length > 0 ? [...images] : ["/products/spray.jpeg"];
+    const j = index + direction;
+    if (j < 0 || j >= base.length) return;
+    const copy = [...base];
+    [copy[index], copy[j]] = [copy[j], copy[index]];
+    setImages(copy);
+  };
 
   const onSubmit = async (data: any) => {
     setSubmitting(true);
@@ -67,7 +93,7 @@ export default function AdminProductsPage() {
         benefits: data.benefits?.length ? data.benefits : [],
         usageInstructions: data.usageInstructions?.length ? data.usageInstructions : [],
         safetyNotes: data.safetyNotes ?? "",
-        images: data.images?.length ? data.images : ["/spray.jpeg"],
+        images: data.images?.length ? data.images : ["/products/spray.jpeg"],
       };
 
       const url = editingProduct
@@ -126,8 +152,13 @@ export default function AdminProductsPage() {
         safetyNotes: product.safetyNotes ?? "",
         price: typeof product.price === "number" ? product.price : Number(product.price) || 0,
         currency: product.currency || "INR",
-        images: product.images?.length ? product.images : ["/spray.jpeg"],
-        inStock: product.inStock !== false,
+        images: product.images?.length ? product.images : ["/products/spray.jpeg"],
+        stockLeft:
+          typeof product.stockLeft === "number"
+            ? product.stockLeft
+            : product.inStock !== false
+              ? 1
+              : 0,
         isActive: product.isActive !== false,
       });
     } else {
@@ -141,8 +172,8 @@ export default function AdminProductsPage() {
         safetyNotes: "",
         price: 0,
         currency: "INR",
-        images: ["/spray.jpeg"], // Default placeholder
-        inStock: true,
+        images: ["/products/spray.jpeg"], // Default placeholder
+        stockLeft: 10,
         isActive: true,
       });
     }
@@ -189,7 +220,7 @@ export default function AdminProductsPage() {
             </div>
             <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-50 border border-gray-100">
               <Image
-                src={product.images[0] || "/spray.jpeg"}
+                src={product.images[0] || "/products/spray.jpeg"}
                 alt={product.name}
                 fill
                 className="object-cover"
@@ -199,6 +230,17 @@ export default function AdminProductsPage() {
             <div>
               <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
               <p className="text-primary-600 font-bold">₹{product.price}</p>
+              <p className="text-sm text-gray-600">
+                Stock:{" "}
+                <span className="font-semibold text-gray-800">
+                  {typeof product.stockLeft === "number" ? product.stockLeft : "—"}
+                </span>
+                {product.inStock ? (
+                  <span className="text-green-600"> · In stock</span>
+                ) : (
+                  <span className="text-red-600"> · Out of stock</span>
+                )}
+              </p>
               <p className="text-gray-500 text-sm mt-2 line-clamp-2">{product.description}</p>
             </div>
             <div className="flex items-center space-x-2 pt-2">
@@ -266,7 +308,7 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold">Price (INR)</label>
                   <input
@@ -275,42 +317,114 @@ export default function AdminProductsPage() {
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                 </div>
-                <div className="flex items-center space-x-8 pt-8">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      {...register("inStock", {
-                        setValueAs: (v: unknown) => v === true || v === "on",
-                      })}
-                      className="w-4 h-4 rounded text-primary-600"
-                    />
-                    <span className="text-sm font-semibold">In Stock</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Stock left (units)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    {...register("stockLeft", { valueAsNumber: true })}
+                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Use 0 for out of stock (Buy now is disabled on the shop). Any number greater than
+                    0 counts as in stock.
+                  </p>
+                  {errors.stockLeft && (
+                    <p className="text-xs text-red-500">{errors.stockLeft.message as string}</p>
+                  )}
+                </div>
+                <div className="flex items-center space-x-8 md:col-span-2 md:pt-2">
+                  <label className="flex cursor-pointer items-center space-x-2">
                     <input
                       type="checkbox"
                       {...register("isActive", {
                         setValueAs: (v: unknown) => v === true || v === "on",
                       })}
-                      className="w-4 h-4 rounded text-primary-600"
+                      className="h-4 w-4 rounded text-primary-600"
                     />
-                    <span className="text-sm font-semibold">Active</span>
+                    <span className="text-sm font-semibold">Active (visible on shop)</span>
                   </label>
                 </div>
               </div>
 
-              <AdminImageUpload
-                label="Product image"
-                folder="healinghands/products"
-                value={(images && images[0]) || "/spray.jpeg"}
-                onChange={(url) =>
-                  setValue("images", [url], { shouldValidate: true, shouldDirty: true })
-                }
-                aspectClass="aspect-square w-full max-w-xs"
-              />
-              {errors.images && (
-                <p className="text-xs text-red-600">{errors.images.message as string}</p>
-              )}
+              <div className="space-y-4 border-t border-gray-100 pt-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-900">Product images</label>
+                  <p className="mt-1 text-xs text-gray-500">
+                    First image is the main thumbnail on the shop. All images appear in the product
+                    page carousel. Upload or replace each slot; use arrows to change order.
+                  </p>
+                </div>
+                {imageSlots.map((url, index) => (
+                  <div
+                    key={`product-img-${index}`}
+                    className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 p-4 sm:flex-row sm:items-start"
+                  >
+                    <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-center">
+                      <span className="w-6 text-center text-xs font-bold text-gray-400">{index + 1}</span>
+                      <div className="flex flex-row gap-1 sm:flex-col">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => moveImage(index, -1)}
+                          className="rounded-lg border border-gray-200 bg-white p-1.5 text-gray-600 hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Move image up"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index >= imageSlots.length - 1}
+                          onClick={() => moveImage(index, 1)}
+                          className="rounded-lg border border-gray-200 bg-white p-1.5 text-gray-600 hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          aria-label="Move image down"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <AdminImageUpload
+                        label={index === 0 ? "Primary image" : `Image ${index + 1}`}
+                        folder="healinghands/products"
+                        value={url}
+                        onChange={(newUrl) => {
+                          const base =
+                            images && images.length > 0 ? [...images] : ["/products/spray.jpeg"];
+                          base[index] = newUrl;
+                          setImages(base);
+                        }}
+                        aspectClass="aspect-square w-full max-w-[220px]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={imageSlots.length <= 1}
+                      onClick={() => removeImageAt(index)}
+                      className="inline-flex shrink-0 items-center gap-1 self-start rounded-lg border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addImageSlot}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/50 py-3 text-sm font-semibold text-primary-800 transition hover:bg-primary-50 sm:w-auto sm:px-6"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add another image
+                </button>
+                {errors.images && (
+                  <p className="text-xs text-red-600">
+                    {typeof errors.images === "object" && errors.images !== null && "message" in errors.images
+                      ? String((errors.images as { message: string }).message)
+                      : "Check product images."}
+                  </p>
+                )}
+              </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold">Safety Notes</label>

@@ -11,7 +11,6 @@ import {
   Package,
   Award,
   MessageSquare,
-  FileText,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -24,6 +23,7 @@ const menuItems = [
   { label: "Services", href: "/admin/dashboard/services", icon: Wrench },
   { label: "Products", href: "/admin/dashboard/products", icon: Package },
   { label: "Certifications", href: "/admin/dashboard/certifications", icon: Award },
+  { label: "Testimonials", href: "/admin/dashboard/testimonials", icon: MessageSquare },
   { label: "Site Settings", href: "/admin/dashboard/settings", icon: Settings },
 ];
 

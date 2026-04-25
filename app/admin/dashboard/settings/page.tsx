@@ -9,13 +9,20 @@ const SETTING_LABELS: Record<string, string> = {
   tagline: "Tagline",
   featuredBannerEnabled: 'Featured banner — show on site ("true" or "false")',
   featuredBannerContent: "Featured banner — full message (line breaks preserved)",
+  bookingTimeSlots:
+    "Book a session — allowed time slots (one per line, e.g. 9:00 AM). Only these appear on the public booking form.",
 };
 
 function sortSettings<T extends { key: string }>(list: T[]): T[] {
+  const rank = (k: string) => {
+    if (k.startsWith("featuredBanner")) return 0;
+    if (k === "bookingTimeSlots") return 1;
+    return 2;
+  };
   return [...list].sort((a, b) => {
-    const fa = a.key.startsWith("featuredBanner") ? 0 : 1;
-    const fb = b.key.startsWith("featuredBanner") ? 0 : 1;
-    if (fa !== fb) return fa - fb;
+    const ra = rank(a.key);
+    const rb = rank(b.key);
+    if (ra !== rb) return ra - rb;
     return a.key.localeCompare(b.key);
   });
 }
@@ -57,11 +64,11 @@ export default function AdminSettingsPage() {
         {settings.map((s) => (
           <div key={s.key} className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">{labelFor(s.key)}</label>
-            {s.key === "featuredBannerContent" ? (
+            {s.key === "featuredBannerContent" || s.key === "bookingTimeSlots" ? (
               <textarea
                 defaultValue={s.value}
                 onBlur={(e) => handleUpdate(s.key, e.target.value)}
-                rows={18}
+                rows={s.key === "bookingTimeSlots" ? 12 : 18}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 font-sans text-sm leading-relaxed"
               />
             ) : (

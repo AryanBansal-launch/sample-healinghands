@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { 
-  CheckCircle, 
-  XCircle, 
-  MessageSquare, 
-  ExternalLink 
-} from "lucide-react";
-import { buildWhatsAppURL, buildBookingApprovalMessage } from "@/lib/whatsapp";
+import { CheckCircle, XCircle, MessageSquare } from "lucide-react";
+import {
+  buildBookingApprovalMessage,
+  buildCustomerWhatsAppURL,
+} from "@/lib/whatsapp";
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<any[]>([]);
@@ -30,28 +28,50 @@ export default function BookingsPage() {
     fetchBookings();
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (
+    id: string,
+    status: string
+  ): Promise<{ customerWhatsAppUrl?: string } | null> => {
     try {
-      await fetch(`/api/admin/bookings/${id}`, {
+      const res = await fetch(`/api/admin/bookings/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      fetchBookings();
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error(err);
+        return null;
+      }
+      const data = await res.json();
+      await fetchBookings();
+      return {
+        customerWhatsAppUrl:
+          typeof data.customerWhatsAppUrl === "string"
+            ? data.customerWhatsAppUrl
+            : undefined,
+      };
     } catch (err) {
       console.error(err);
+      return null;
     }
   };
 
-  const handleApprove = (booking: any) => {
-    updateStatus(booking._id, "approved");
+  const handleApprove = async (booking: any) => {
+    const result = await updateStatus(booking._id, "approved");
+    if (result?.customerWhatsAppUrl) {
+      window.open(result.customerWhatsAppUrl, "_blank");
+    }
+  };
+
+  const openConfirmationWhatsApp = (booking: any) => {
     const message = buildBookingApprovalMessage({
       fullName: booking.fullName,
       service: booking.service,
       preferredDate: format(new Date(booking.preferredDate), "PPP"),
       preferredTime: booking.preferredTime,
     });
-    window.open(`https://wa.me/${booking.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`, "_blank");
+    window.open(buildCustomerWhatsAppURL(booking.phone, message), "_blank");
   };
 
   if (loading) return <div>Loading bookings...</div>;
@@ -115,13 +135,24 @@ export default function BookingsPage() {
                       </>
                     )}
                     {booking.status === 'approved' && (
-                      <button
-                        onClick={() => updateStatus(booking._id, "completed")}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Mark Completed"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openConfirmationWhatsApp(booking)}
+                          className="p-2 text-[#25D366] hover:bg-green-50 rounded-lg transition-colors"
+                          title="Open WhatsApp confirmation again"
+                        >
+                          <MessageSquare className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateStatus(booking._id, "completed")}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Mark Completed"
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                      </>
                     )}
                   </div>
                 </td>

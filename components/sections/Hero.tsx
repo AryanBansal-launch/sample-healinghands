@@ -11,7 +11,7 @@ export default function Hero() {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/banner1.jpeg"
+          src="/banners/banner1.jpeg"
           alt="The Healing Hands background"
           fill
           className="object-cover opacity-30"

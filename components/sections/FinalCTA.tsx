@@ -11,7 +11,7 @@ export default function FinalCTA() {
       {/* Background with Image and Overlay */}
       <div className="absolute inset-0 -z-10">
         <Image
-          src="/banner3.jpeg"
+          src="/banners/banner3.jpeg"
           alt="Healing Journey Background"
           fill
           className="object-cover"
