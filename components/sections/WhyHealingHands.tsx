@@ -1,6 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import Image from 'next/image'
+import { useCallback, useEffect, useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 
 const benefits = [
@@ -10,6 +12,100 @@ const benefits = [
   'Energy-based wellness methodology',
   'Personalized sessions tailored to your needs',
 ]
+
+/** Filenames in `public/collage/` — add or remove as you update the folder. */
+const COLLAGE_FILES = [
+  'WhatsApp Image 2026-01-29 at 10.46.46 PM (1).jpeg',
+  'WhatsApp Image 2026-04-23 at 10.07.32 AM.jpeg',
+  'WhatsApp Image 2026-04-23 at 10.07.33 AM.jpeg',
+  'WhatsApp Image 2026-04-23 at 10.07.34 AM.jpeg',
+  'WhatsApp Image 2026-04-25 at 5.16.50 PM.jpeg',
+  'WhatsApp Image 2026-04-25 at 5.36.53 PM.jpeg',
+] as const
+
+function collageSrc(filename: string) {
+  return `/collage/${encodeURIComponent(filename)}`
+}
+
+const AUTO_MS = 5200
+
+function CollageCarousel() {
+  const reduceMotion = useReducedMotion()
+  /** Copy so length is `number`, not literal `6` — avoids TS rejecting `length === 0` in production build. */
+  const slides: string[] = [...COLLAGE_FILES]
+  const [index, setIndex] = useState(0)
+
+  const go = useCallback((i: number) => {
+    setIndex(((i % slides.length) + slides.length) % slides.length)
+  }, [slides.length])
+
+  useEffect(() => {
+    if (slides.length <= 1 || reduceMotion) return
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length)
+    }, AUTO_MS)
+    return () => window.clearInterval(id)
+  }, [slides.length, reduceMotion])
+
+  if (slides.length === 0) {
+    return (
+      <div className="aspect-square bg-gradient-to-br from-primary-200 to-lavender-200 rounded-xl flex items-center justify-center">
+        <p className="text-gray-600 text-sm px-4 text-center">Add images to <code className="text-xs">public/collage</code></p>
+      </div>
+    )
+  }
+
+  const current = slides[index]
+
+  return (
+    <div
+      className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-inner"
+      aria-roledescription="carousel"
+      aria-label="Photo collage from healing sessions"
+    >
+      <AnimatePresence initial={false} mode="wait">
+        <motion.div
+          key={current}
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={reduceMotion ? undefined : { opacity: 0 }}
+          transition={{ duration: reduceMotion ? 0 : 0.55, ease: 'easeInOut' }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={collageSrc(current)}
+            alt={`Healing hands collage, image ${index + 1} of ${slides.length}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            priority={index === 0}
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* subtle gradient at bottom for dots contrast */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/25 to-transparent pointer-events-none"
+        aria-hidden
+      />
+
+      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => go(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${
+              i === index ? 'w-6 bg-white shadow' : 'w-2 bg-white/50 hover:bg-white/80'
+            }`}
+            aria-label={`Show image ${i + 1}`}
+            aria-current={i === index}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function WhyHealingHands() {
   return (
@@ -62,22 +158,12 @@ export default function WhyHealingHands() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="bg-white rounded-2xl p-8 shadow-xl"
+            className="bg-white rounded-2xl p-4 sm:p-6 shadow-xl"
           >
-            <div className="aspect-square bg-gradient-to-br from-primary-200 to-lavender-200 rounded-xl flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-4xl">✨</span>
-                </div>
-                <p className="text-gray-600 italic">
-                  &quot;Healing starts from within&quot;
-                </p>
-              </div>
-            </div>
+            <CollageCarousel />
           </motion.div>
         </div>
       </div>
     </section>
   )
 }
-
