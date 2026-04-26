@@ -42,7 +42,7 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/services")
+    fetch("/api/services", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         setServices(data);
@@ -92,7 +92,9 @@ export default function ServicesPage() {
                 </p>
                 {service.isProgram && (
                   <div className="mb-6 p-4 bg-white rounded-2xl border border-gold-200">
-                    <p className="text-sm font-semibold text-gold-700 mb-2">PROSPERITY PROGRAM</p>
+                    <p className="text-sm font-bold text-gold-700 uppercase tracking-widest mb-2">
+                      Exclusive Program
+                    </p>
                     <p className="text-2xl font-bold text-gray-900">₹{service.programDetails.price}</p>
                     <p className="text-sm text-gray-500">{service.programDetails.sessions} Sessions</p>
                   </div>

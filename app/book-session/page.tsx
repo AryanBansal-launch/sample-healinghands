@@ -31,7 +31,7 @@ export default function BookSessionPage() {
     Boolean(preferredDate) && /^\d{4}-\d{2}-\d{2}/.test(String(preferredDate).trim());
 
   useEffect(() => {
-    fetch("/api/services")
+    fetch("/api/services", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setServices(Array.isArray(data) ? data : []))
       .catch((err) => console.error(err));

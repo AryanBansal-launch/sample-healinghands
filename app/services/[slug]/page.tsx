@@ -21,7 +21,7 @@ export default function ServiceDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/services/${slug}`)
+    fetch(`/api/services/${slug}`, { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         setService(data);
