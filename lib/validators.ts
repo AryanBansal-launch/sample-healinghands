@@ -1,3 +1,4 @@
+import { validateBookingCalendarAndTime } from "@/lib/booking-datetime-policy";
 import { z } from "zod";
 
 export const serviceSchema = z.object({
@@ -37,15 +38,33 @@ export const productSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const bookingSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number is required"),
-  service: z.string().min(1, "Service is required"),
-  preferredDate: z.string().or(z.date()),
-  preferredTime: z.string().min(1, "Please select a time slot"),
-  concerns: z.string().min(5, "Please share your concerns"),
-});
+export const bookingSchema = z
+  .object({
+    fullName: z.string().min(2, "Full name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(10, "Phone number is required"),
+    service: z.string().min(1, "Service is required"),
+    preferredDate: z.string().or(z.date()),
+    preferredTime: z.string().min(1, "Please select a time slot"),
+    concerns: z.string().min(5, "Please share your concerns"),
+  })
+  .superRefine((data, ctx) => {
+    const timing = validateBookingCalendarAndTime(data.preferredDate, data.preferredTime);
+    if (!timing) return;
+    if (timing.code === "BAD_DATE") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: timing.message,
+        path: ["preferredDate"],
+      });
+    } else {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: timing.message,
+        path: ["preferredTime"],
+      });
+    }
+  });
 
 export const purchaseRequestSchema = z.object({
   product: z.string(),

@@ -1,3 +1,4 @@
+import { filterSlotsForSelectableCalendarDay } from "@/lib/booking-datetime-policy";
 import dbConnect from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import {
@@ -21,6 +22,9 @@ export async function GET(req: NextRequest) {
     let slots = parseBookingTimeSlotsRaw(raw);
 
     const dateParam = req.nextUrl.searchParams.get("date")?.trim() ?? "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      slots = filterSlotsForSelectableCalendarDay(dateParam, slots);
+    }
     const range = dateParam ? utcDayRangeFromYyyyMmDd(dateParam) : null;
     if (range) {
       const taken = await Booking.find({

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { todayYyyyMmDdInBookingTZ } from "@/lib/booking-date";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookingSchema } from "@/lib/validators";
@@ -8,6 +9,7 @@ import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 
 export default function BookSessionPage() {
+  const minBookingDate = useMemo(() => todayYyyyMmDdInBookingTZ(), []);
   const [services, setServices] = useState<any[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -190,6 +192,7 @@ export default function BookSessionPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
                 <input
                   type="date"
+                  min={minBookingDate}
                   {...register("preferredDate")}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />

@@ -33,6 +33,22 @@ export function isAllowedBookingTime(
   return allowedSlots.some((s) => s.trim() === t);
 }
 
+/** Parses labels like `9:00 AM` / `12:30 PM` (site settings format). */
+export function parseBookingSlotToMinutesSinceMidnight(label: string): number | null {
+  const s = label.trim();
+  const m = /^\s*(\d{1,2}):(\d{2})\s*(AM|PM)\s*$/i.exec(s);
+  if (!m) return null;
+  let h = Number(m[1]);
+  const min = Number(m[2]);
+  const ap = m[3].toUpperCase();
+  if (!Number.isFinite(h) || !Number.isFinite(min) || h < 1 || h > 12 || min < 0 || min > 59) {
+    return null;
+  }
+  if (ap === "PM" && h !== 12) h += 12;
+  if (ap === "AM" && h === 12) h = 0;
+  return h * 60 + min;
+}
+
 export const BOOKING_SLOTS_SETTING_DEFAULTS: Record<string, string> = {
   bookingTimeSlots: DEFAULT_BOOKING_TIME_SLOTS_TEXT,
 };
