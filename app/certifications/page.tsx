@@ -1,5 +1,6 @@
 "use client";
 
+import { CertificationsPageSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Award } from "lucide-react";
@@ -20,7 +21,7 @@ export default function CertificationsPage() {
       .catch((err) => console.error(err));
   }, []);
 
-  if (loading) return <div className="min-h-screen pt-32 text-center text-gray-600">Loading certifications...</div>;
+  if (loading) return <CertificationsPageSkeleton />;
 
   return (
     <div className="min-h-screen py-20 bg-gradient-to-br from-green-50 via-lavender-50 to-gold-50">

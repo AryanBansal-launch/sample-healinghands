@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminDashboardSkeleton } from "@/components/ui/skeleton";
 import { 
   CalendarCheck, 
   ShoppingBag, 
@@ -31,7 +32,7 @@ export default function AdminDashboardPage() {
       .catch((err) => console.error(err));
   }, []);
 
-  if (loading) return <div>Loading dashboard...</div>;
+  if (loading) return <AdminDashboardSkeleton />;
 
   const cards = [
     { label: "Pending Bookings", value: stats?.pendingBookings, icon: CalendarCheck, color: "text-blue-600", bg: "bg-blue-100" },

@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminSettingsSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useMemo, useState } from "react";
 
 const SETTING_LABELS: Record<string, string> = {
@@ -55,7 +56,7 @@ export default function AdminSettingsPage() {
     []
   );
 
-  if (loading) return <div>Loading settings...</div>;
+  if (loading) return <AdminSettingsSkeleton />;
 
   return (
     <div className="space-y-6">

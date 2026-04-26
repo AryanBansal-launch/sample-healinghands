@@ -9,6 +9,7 @@ import { ShoppingCart, X, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { purchaseRequestSchema } from "@/lib/validators";
+import { ShopPageSkeleton } from "@/components/ui/skeleton";
 import { buildPurchaseMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 
 function isRemoteImage(src: string) {
@@ -113,7 +114,7 @@ function ShopPageInner() {
   };
 
   if (loading) {
-    return <div className="min-h-screen pt-32 text-center text-gray-600">Loading shop...</div>;
+    return <ShopPageSkeleton />;
   }
 
   return (
@@ -289,7 +290,7 @@ function ShopPageInner() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen pt-32 text-center text-gray-600">Loading shop...</div>}>
+    <Suspense fallback={<ShopPageSkeleton />}>
       <ShopPageInner />
     </Suspense>
   );

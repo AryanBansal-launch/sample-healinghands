@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminGridCardsSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
@@ -127,7 +128,7 @@ export default function AdminCertificationsPage() {
     reset();
   };
 
-  if (loading) return <div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-primary-600" /></div>;
+  if (loading) return <AdminGridCardsSkeleton count={6} />;
 
   return (
     <div className="space-y-6">

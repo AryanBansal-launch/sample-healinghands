@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { LoginShellSkeleton } from "@/components/ui/skeleton";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 
@@ -117,11 +118,7 @@ function LoginForm() {
 export default function AdminLoginPage() {
   return (
     <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-gray-600">Loading…</p>
-        </div>
-      }
+      fallback={<LoginShellSkeleton />}
     >
       <LoginForm />
     </Suspense>

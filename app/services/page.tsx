@@ -1,5 +1,6 @@
 "use client";
 
+import { ServicesPageSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -50,7 +51,7 @@ export default function ServicesPage() {
       .catch((err) => console.error(err));
   }, []);
 
-  if (loading) return <div className="min-h-screen pt-32 text-center">Loading services...</div>;
+  if (loading) return <ServicesPageSkeleton />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-lavender-50 to-gold-50 py-20">

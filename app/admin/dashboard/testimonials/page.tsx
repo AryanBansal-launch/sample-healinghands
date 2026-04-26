@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminTestimonialsSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Loader2, CheckCircle2, Star } from "lucide-react";
 import { useForm, type FieldErrors } from "react-hook-form";
@@ -166,11 +167,7 @@ export default function AdminTestimonialsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center p-16">
-        <Loader2 className="h-10 w-10 animate-spin text-primary-600" />
-      </div>
-    );
+    return <AdminTestimonialsSkeleton />;
   }
 
   return (

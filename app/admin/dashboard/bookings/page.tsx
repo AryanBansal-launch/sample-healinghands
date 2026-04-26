@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminTableSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { CheckCircle, XCircle, MessageSquare } from "lucide-react";
@@ -74,7 +75,7 @@ export default function BookingsPage() {
     window.open(buildCustomerWhatsAppURL(booking.phone, message), "_blank");
   };
 
-  if (loading) return <div>Loading bookings...</div>;
+  if (loading) return <AdminTableSkeleton rows={6} />;
 
   return (
     <div className="space-y-6">

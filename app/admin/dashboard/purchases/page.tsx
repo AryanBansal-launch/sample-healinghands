@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminTableSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { 
@@ -42,7 +43,7 @@ export default function PurchasesPage() {
     }
   };
 
-  if (loading) return <div>Loading purchases...</div>;
+  if (loading) return <AdminTableSkeleton rows={6} />;
 
   return (
     <div className="space-y-6">

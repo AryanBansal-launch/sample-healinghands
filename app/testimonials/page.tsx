@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Star, Quote, ArrowRight, Send, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { TestimonialsPageSkeleton } from "@/components/ui/skeleton";
 import { testimonialPublicSubmitSchema } from "@/lib/validators";
 import type { z } from "zod";
 
@@ -78,9 +79,7 @@ export default function TestimonialsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen pt-32 text-center text-gray-600">Loading testimonials...</div>
-    );
+    return <TestimonialsPageSkeleton />;
   }
 
   return (
