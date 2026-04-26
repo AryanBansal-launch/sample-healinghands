@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Star, Quote, ArrowRight, Send, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import StarRatingInput from "@/components/StarRatingInput";
 import { TestimonialsPageSkeleton } from "@/components/ui/skeleton";
 import { testimonialPublicSubmitSchema } from "@/lib/validators";
 import type { z } from "zod";
@@ -21,6 +22,7 @@ export default function TestimonialsPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -219,20 +221,24 @@ export default function TestimonialsPage() {
                 )}
               </div>
               <div>
-                <label htmlFor="t-rating" className="mb-1 block text-sm font-semibold text-gray-800">
+                <p id="t-rating-label" className="mb-2 block text-sm font-semibold text-gray-800">
                   Overall rating
-                </label>
-                <select
-                  id="t-rating"
-                  {...register("rating", { valueAsNumber: true })}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none transition focus:border-primary-400 focus:ring-2 focus:ring-primary-200"
-                >
-                  {[5, 4, 3, 2, 1].map((n) => (
-                    <option key={n} value={n}>
-                      {n} {n === 1 ? "star" : "stars"}
-                    </option>
-                  ))}
-                </select>
+                </p>
+                <Controller
+                  name="rating"
+                  control={control}
+                  render={({ field }) => (
+                    <StarRatingInput
+                      labelId="t-rating-label"
+                      value={field.value ?? 5}
+                      onChange={field.onChange}
+                      disabled={submitting}
+                    />
+                  )}
+                />
+                {errors.rating && (
+                  <p className="mt-1 text-xs text-red-600">{errors.rating.message}</p>
+                )}
               </div>
               <button
                 type="submit"
