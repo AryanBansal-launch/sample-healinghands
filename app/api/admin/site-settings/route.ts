@@ -48,11 +48,17 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
+    const key = typeof body.key === "string" ? body.key.trim() : "";
+    if (!key) {
+      return NextResponse.json({ error: "Setting key is required." }, { status: 400 });
+    }
+    const value = typeof body.value === "string" ? body.value : String(body.value ?? "");
+
     await dbConnect();
-    
+
     const setting = await SiteSettings.findOneAndUpdate(
-      { key: body.key },
-      { value: body.value },
+      { key },
+      { value },
       { upsert: true, new: true }
     );
 

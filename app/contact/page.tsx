@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { DEFAULT_PUBLIC_CONTACT_EMAIL } from '@/lib/public-contact'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,11 +19,24 @@ type ContactFormData = z.infer<typeof contactSchema>
 
 const phonePrimary = '+91 93557 33831'
 const phoneSecondary = '+91 92170 46526'
-const whatsappNumber = "919217046526";
-const email = 'healinghandswithpreyanka@gmail.com' // Replace with actual email
+const whatsappFallback = "919217046526"
 
 export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [contactEmail, setContactEmail] = useState(DEFAULT_PUBLIC_CONTACT_EMAIL)
+  const [whatsappNumber, setWhatsappNumber] = useState(whatsappFallback)
+
+  useEffect(() => {
+    fetch("/api/site-settings", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((m: Record<string, string>) => {
+        const e = m.email?.trim()
+        if (e) setContactEmail(e)
+        const w = m.whatsapp?.replace(/\D/g, "")
+        if (w && w.length >= 10) setWhatsappNumber(w)
+      })
+      .catch(() => {})
+  }, [])
   const {
     register,
     handleSubmit,
@@ -91,7 +105,7 @@ export default function ContactPage() {
                 </div>
 
                 <a
-                  href={`https://wa.me/${whatsappNumber}`}
+                  href={`https://wa.me/${whatsappNumber.replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-start space-x-4 p-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow group"
@@ -104,13 +118,13 @@ export default function ContactPage() {
                 </a>
 
                 <a
-                  href={`mailto:${email}`}
+                  href={`mailto:${contactEmail}`}
                   className="flex items-start space-x-4 p-4 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow group"
                 >
                   <Mail className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform" />
                   <div>
                     <p className="font-semibold text-gray-900">Email</p>
-                    <p className="text-gray-600">{email}</p>
+                    <p className="text-gray-600">{contactEmail}</p>
                   </div>
                 </a>
 

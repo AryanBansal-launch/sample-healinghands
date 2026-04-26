@@ -20,7 +20,7 @@ const COLLAGE_FILES = [
   'WhatsApp Image 2026-04-23 at 10.07.33 AM.jpeg',
   'WhatsApp Image 2026-04-23 at 10.07.34 AM.jpeg',
   'WhatsApp Image 2026-04-25 at 5.16.50 PM.jpeg',
-  'WhatsApp Image 2026-04-25 at 5.36.53 PM.jpeg',
+  'WhatsApp Image 2026-04-26 at 10.58.16 PM.jpeg',
 ] as const
 
 function collageSrc(filename: string) {

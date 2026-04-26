@@ -9,6 +9,7 @@ import {
   DEFAULT_FEATURED_BANNER_CONTENT,
   DEFAULT_FEATURED_BANNER_ENABLED,
 } from "../lib/featured-banner-defaults";
+import { DEFAULT_PUBLIC_CONTACT_EMAIL } from "../lib/public-contact";
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import path from "path";
@@ -29,7 +30,7 @@ type SeedableCollection = (typeof SEEDABLE)[number];
 
 const SITE_SETTINGS_DEFAULTS: { key: string; value: string }[] = [
   { key: "phone", value: "9355733831" },
-  { key: "email", value: "healinghandswithpreyanka@gmail.com" },
+  { key: "email", value: DEFAULT_PUBLIC_CONTACT_EMAIL },
   { key: "whatsapp", value: "919217046526" },
   { key: "tagline", value: "Healing starts from within" },
   { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
