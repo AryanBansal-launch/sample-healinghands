@@ -43,7 +43,9 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Dashboard Overview</h1>
+        <h1 className="text-2xl font-serif font-bold text-gray-900 sm:text-3xl">
+          Dashboard Overview
+        </h1>
         <p className="text-gray-600">Welcome back, Preyanka M Jain</p>
       </div>
 
@@ -63,16 +65,19 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Recent Bookings */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-xl font-bold mb-4">Recent Bookings</h2>
           <div className="space-y-4">
             {stats?.recentBookings.map((booking) => (
-              <div key={booking._id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+              <div
+                key={booking._id}
+                className="flex flex-col gap-2 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
                 <div>
                   <p className="font-semibold">{booking.fullName}</p>
                   <p className="text-sm text-gray-500">{booking.service}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-sm font-medium">{new Date(booking.preferredDate).toLocaleDateString()}</p>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     booking.status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'
@@ -86,16 +91,19 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Recent Purchases */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-xl font-bold mb-4">Recent Purchases</h2>
           <div className="space-y-4">
             {stats?.recentPurchases.map((purchase) => (
-              <div key={purchase._id} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+              <div
+                key={purchase._id}
+                className="flex flex-col gap-2 rounded-xl bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
                 <div>
                   <p className="font-semibold">{purchase.customerName}</p>
                   <p className="text-sm text-gray-500">{purchase.productName} (x{purchase.quantity})</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-sm font-medium">₹{purchase.totalAmount}</p>
                   <span className={`text-xs px-2 py-1 rounded-full ${
                     purchase.status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'

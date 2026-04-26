@@ -46,12 +46,15 @@ export default function PurchasesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Purchase Requests</h1>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-serif font-bold text-gray-900 sm:text-3xl">
+          Purchase Requests
+        </h1>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] text-left">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="px-6 py-4 font-semibold text-gray-700">Customer</th>
@@ -130,6 +133,7 @@ export default function PurchasesPage() {
             ))}
           </tbody>
         </table>
+        </div>
         {purchases.length === 0 && (
           <div className="p-12 text-center text-gray-500">
             No purchase requests found.

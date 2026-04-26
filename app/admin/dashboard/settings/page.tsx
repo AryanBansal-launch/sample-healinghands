@@ -59,7 +59,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-serif font-bold">Site Settings</h1>
+      <h1 className="text-2xl font-serif font-bold sm:text-3xl">Site Settings</h1>
       <div className="bg-white p-8 rounded-3xl shadow-sm space-y-6">
         {settings.map((s) => (
           <div key={s.key} className="space-y-2">

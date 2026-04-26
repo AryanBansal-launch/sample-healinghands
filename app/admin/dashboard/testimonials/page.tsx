@@ -175,12 +175,12 @@ export default function AdminTestimonialsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-serif text-3xl font-bold text-gray-900">Testimonials</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <h1 className="font-serif text-2xl font-bold text-gray-900 sm:text-3xl">Testimonials</h1>
         <button
           type="button"
           onClick={() => openModal(null)}
-          className="flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-2 font-semibold text-white transition hover:bg-primary-700"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2 font-semibold text-white transition hover:bg-primary-700 sm:w-auto"
         >
           <Plus className="h-5 w-5" />
           Add testimonial

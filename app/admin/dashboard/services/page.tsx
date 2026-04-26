@@ -161,11 +161,11 @@ export default function AdminServicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-serif font-bold text-gray-900">Manage Services</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-serif font-bold text-gray-900 sm:text-3xl">Manage Services</h1>
         <button
           onClick={() => openModal()}
-          className="bg-primary-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2 hover:bg-primary-700 transition-colors"
+          className="inline-flex w-full shrink-0 items-center justify-center space-x-2 rounded-xl bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 sm:w-auto"
         >
           <Plus className="w-5 h-5" />
           <span>Add Service</span>
@@ -225,7 +225,7 @@ export default function AdminServicesPage() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <h2 className="text-2xl font-serif font-bold">
                   {editingService ? "Edit Service" : "Add New Service"}
                 </h2>
