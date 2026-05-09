@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed-data.ts",
-    "seed:all": "tsx scripts/seed-data.ts --all"
+    "seed:all": "tsx scripts/seed-data.ts --all",
+    "db:update-healing-bliss-spray": "tsx scripts/update-healing-bliss-spray-variants.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.0",

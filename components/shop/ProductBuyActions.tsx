@@ -63,24 +63,45 @@ export default function ProductBuyActions({ product }: { product: ProductBuyActi
       </div>
 
       {showVariantPicker && (
-        <div className="pt-2">
-          <label htmlFor="product-variant" className="sr-only">
-            Choose option
-          </label>
-          <select
-            id="product-variant"
-            value={vid}
-            onChange={(e) => setVid(e.target.value)}
-            className="w-full max-w-md rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500 outline-none"
-          >
-            {variants.map((v) => (
-              <option key={v.id} value={v.id} disabled={!v.inStock}>
-                {v.label} — {money(currency, v.price)}
-                {!v.inStock ? " (Unavailable)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
+        <fieldset className="pt-2">
+          <legend className="text-sm font-semibold text-gray-700 mb-3">Choose size</legend>
+          <div className="flex flex-col gap-2 max-w-md" role="radiogroup" aria-label="Product size">
+            {variants.map((v) => {
+              const inputId = `variant-${product.slug}-${v.id}`;
+              return (
+                <label
+                  key={v.id}
+                  htmlFor={inputId}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                    vid === v.id
+                      ? "border-primary-600 bg-white shadow-sm ring-1 ring-primary-600/20"
+                      : "border-gray-200 bg-white/80 hover:border-primary-300"
+                  } ${!v.inStock ? "cursor-not-allowed opacity-50" : ""}`}
+                >
+                  <input
+                    id={inputId}
+                    type="radio"
+                    name={`product-variant-${product.slug}`}
+                    value={v.id}
+                    checked={vid === v.id}
+                    disabled={!v.inStock}
+                    onChange={() => setVid(v.id)}
+                    className="h-4 w-4 shrink-0 border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <span className="font-medium text-gray-900">{v.label}</span>
+                    <span className="text-sm font-semibold text-primary-800 sm:text-base">
+                      {money(currency, v.price)}
+                      {!v.inStock && (
+                        <span className="ml-2 text-xs font-normal text-gray-500">Unavailable</span>
+                      )}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">

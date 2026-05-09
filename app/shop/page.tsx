@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { ShoppingCart, X, ChevronRight } from "lucide-react";
+import { ShoppingCart, X, ChevronRight, Layers } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { purchaseRequestSchema } from "@/lib/validators";
@@ -191,6 +191,14 @@ function ShopPageInner() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {products.map((product) => {
             const img = product.images?.[0] || "/products/spray.jpeg";
+            const variantList = Array.isArray(product.variants) ? product.variants : [];
+            const variantCount = variantList.length;
+            const hasMultipleVariants = variantCount > 1;
+            const variantLabels = variantList
+              .slice(0, 4)
+              .map((v: { label?: string }) => String(v?.label ?? "").trim())
+              .filter(Boolean);
+
             return (
               <div
                 key={product._id}
@@ -205,16 +213,48 @@ function ShopPageInner() {
                     sizes="(max-width: 768px) 100vw, 33vw"
                     unoptimized={isRemoteImage(img)}
                   />
+                  {hasMultipleVariants && (
+                    <div className="absolute right-3 top-3 flex flex-col items-end gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-900/85 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-md backdrop-blur-sm">
+                        <Layers className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        {variantCount} sizes
+                      </span>
+                    </div>
+                  )}
                 </Link>
                 <div className="p-8 flex flex-col flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-6 line-clamp-2 flex-1">{product.description}</p>
-                  <div className="flex items-center justify-between gap-3 mb-4">
-                    <span className="text-3xl font-bold text-gray-900">
-                      {product.priceRange?.showFrom
-                        ? `From ₹${product.priceRange.min}`
-                        : `₹${product.price}`}
-                    </span>
+                  <p className="text-gray-600 mb-4 line-clamp-2 flex-1">{product.description}</p>
+                  {hasMultipleVariants && variantLabels.length > 0 && (
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {variantLabels.map((label: string, i: number) => (
+                        <span
+                          key={`${label}-${i}`}
+                          className="rounded-lg border border-primary-100 bg-primary-50/90 px-2.5 py-1 text-xs font-semibold text-primary-900"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                      {variantCount > variantLabels.length && (
+                        <span className="self-center text-xs font-medium text-gray-500">
+                          +{variantCount - variantLabels.length} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+                    <div>
+                      <span className="text-3xl font-bold text-gray-900">
+                        {product.priceRange?.showFrom
+                          ? `From ₹${product.priceRange.min}`
+                          : `₹${product.price}`}
+                      </span>
+                      {hasMultipleVariants && product.priceRange?.max != null && (
+                        <p className="mt-1 text-sm text-gray-500">
+                          Up to ₹{product.priceRange.max} · pick a size on the product page
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link
@@ -279,21 +319,53 @@ function ShopPageInner() {
                     <p className="font-bold text-gray-900">{selectedProduct?.name}</p>
                     <p className="text-sm text-gray-600">Unit Price: ₹{modalUnit}</p>
                     {modalShowVariants && (
-                      <label className="block pt-2">
-                        <span className="sr-only">Choose option</span>
-                        <select
-                          value={selectedVariantId}
-                          onChange={(e) => setSelectedVariantId(e.target.value)}
-                          className="mt-1 w-full max-w-xs rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900"
+                      <fieldset className="block w-full max-w-md pt-2">
+                        <legend className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                          Choose size
+                        </legend>
+                        <div
+                          className="mt-2 flex flex-col gap-2"
+                          role="radiogroup"
+                          aria-label="Product size"
                         >
-                          {selectedProduct.variants.map((v: any) => (
-                            <option key={v.id} value={v.id} disabled={v.inStock === false}>
-                              {v.label} — ₹{v.price}
-                              {v.inStock === false ? " (Unavailable)" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                          {selectedProduct.variants.map((v: any) => {
+                            const inputId = `checkout-variant-${v.id}`;
+                            return (
+                              <label
+                                key={v.id}
+                                htmlFor={inputId}
+                                className={`flex cursor-pointer items-center gap-3 rounded-xl border bg-white px-3 py-2.5 text-sm transition-colors ${
+                                  selectedVariantId === v.id
+                                    ? "border-primary-600 ring-1 ring-primary-600/20"
+                                    : "border-gray-200 hover:border-primary-300"
+                                } ${v.inStock === false ? "cursor-not-allowed opacity-50" : ""}`}
+                              >
+                                <input
+                                  id={inputId}
+                                  type="radio"
+                                  name="checkout-product-variant"
+                                  value={v.id}
+                                  checked={selectedVariantId === v.id}
+                                  disabled={v.inStock === false}
+                                  onChange={() => setSelectedVariantId(v.id)}
+                                  className="h-4 w-4 shrink-0 border-gray-300 text-primary-600 focus:ring-primary-500"
+                                />
+                                <span className="flex min-w-0 flex-1 justify-between gap-2">
+                                  <span className="font-medium text-gray-900">{v.label}</span>
+                                  <span className="shrink-0 font-semibold text-primary-800">
+                                    ₹{v.price}
+                                    {v.inStock === false && (
+                                      <span className="ml-1.5 text-xs font-normal text-gray-500">
+                                        Unavailable
+                                      </span>
+                                    )}
+                                  </span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </fieldset>
                     )}
                   </div>
                   <div className="flex items-center space-x-3 shrink-0">

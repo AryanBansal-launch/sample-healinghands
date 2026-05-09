@@ -282,13 +282,13 @@ const products = [
     ],
     safetyNotes: "For external use only. Keep away from eyes.",
     variants: [
-      { label: "30 ml", price: 499, stockLeft: 20 },
-      { label: "100 ml", price: 999, stockLeft: 20 },
-      { label: "200 ml", price: 1799, stockLeft: 10 },
+      { label: "20 ml", price: 172, stockLeft: 35 },
+      { label: "100 ml", price: 721, stockLeft: 35 },
+      { label: "200 ml", price: 1270, stockLeft: 30 },
     ],
-    price: 499,
+    price: 172,
     images: ["/products/spray.jpeg"],
-    stockLeft: 50,
+    stockLeft: 100,
     inStock: true,
   }
 ];
