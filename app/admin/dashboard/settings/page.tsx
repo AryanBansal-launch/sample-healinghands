@@ -1,6 +1,8 @@
 "use client";
 
+import BookingTimeSlotsEditor from "@/components/admin/BookingTimeSlotsEditor";
 import { AdminSettingsSkeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const SETTING_LABELS: Record<string, string> = {
@@ -8,10 +10,9 @@ const SETTING_LABELS: Record<string, string> = {
   email: "Email",
   whatsapp: "WhatsApp",
   tagline: "Tagline",
-  featuredBannerEnabled: 'Featured banner — show on site ("true" or "false")',
+  featuredBannerEnabled: "Featured banner — show on site",
   featuredBannerContent: "Featured banner — full message (line breaks preserved)",
-  bookingTimeSlots:
-    "Book a session — allowed time slots (one per line, e.g. 9:00 AM). Only these appear on the public booking form.",
+  bookingTimeSlots: "Book a session — allowed time slots",
 };
 
 function sortSettings<T extends { key: string }>(list: T[]): T[] {
@@ -135,24 +136,100 @@ export default function AdminSettingsPage() {
       <div className="space-y-6 rounded-3xl bg-white p-8 shadow-sm">
         {rows.map((s) => (
           <div key={s.key} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700" htmlFor={`setting-${s.key}`}>
-              {labelFor(s.key)}
-            </label>
-            {s.key === "featuredBannerContent" || s.key === "bookingTimeSlots" ? (
-              <textarea
-                id={`setting-${s.key}`}
-                value={values[s.key] ?? ""}
-                onChange={(e) => setField(s.key, e.target.value)}
-                rows={s.key === "bookingTimeSlots" ? 12 : 18}
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 font-sans text-sm leading-relaxed"
-              />
+            {s.key === "featuredBannerEnabled" ? (
+              <fieldset>
+                <legend className="block text-sm font-medium text-gray-700 mb-3">
+                  {labelFor(s.key)}
+                </legend>
+                {(() => {
+                  const bannerOff =
+                    String(values[s.key] ?? "true").trim().toLowerCase() === "false";
+                  const opts = [
+                    {
+                      stored: "true" as const,
+                      title: "Show",
+                      hint: "Banner appears on the homepage when content is set.",
+                      checked: !bannerOff,
+                    },
+                    {
+                      stored: "false" as const,
+                      title: "Hide",
+                      hint: "Banner is not shown anywhere.",
+                      checked: bannerOff,
+                    },
+                  ];
+                  return (
+                    <div
+                      className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
+                      role="radiogroup"
+                      aria-label={labelFor(s.key)}
+                    >
+                      {opts.map((opt) => {
+                        const inputId = `setting-${s.key}-${opt.stored}`;
+                        return (
+                          <label
+                            key={opt.stored}
+                            htmlFor={inputId}
+                            className={cn(
+                              "flex max-w-md cursor-pointer flex-col gap-1 rounded-2xl border px-4 py-3 transition-colors sm:min-w-[200px]",
+                              opt.checked
+                                ? "border-primary-600 bg-primary-50/80 ring-1 ring-primary-600/25"
+                                : "border-gray-200 bg-white hover:border-primary-200"
+                            )}
+                          >
+                            <span className="flex items-center gap-3">
+                              <input
+                                id={inputId}
+                                type="radio"
+                                name="featuredBannerEnabled"
+                                value={opt.stored}
+                                checked={opt.checked}
+                                onChange={() => setField(s.key, opt.stored)}
+                                className="h-4 w-4 shrink-0 border-gray-300 text-primary-600 focus:ring-primary-500"
+                              />
+                              <span className="text-sm font-semibold text-gray-900">{opt.title}</span>
+                            </span>
+                            <span className="pl-7 text-xs text-gray-600">{opt.hint}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </fieldset>
+            ) : s.key === "bookingTimeSlots" ? (
+              <div className="space-y-2">
+                <p id={`setting-${s.key}-legend`} className="block text-sm font-medium text-gray-700">
+                  {labelFor(s.key)}
+                </p>
+                <BookingTimeSlotsEditor
+                  value={values[s.key] ?? ""}
+                  onChange={(next) => setField(s.key, next)}
+                  legendId={`setting-${s.key}-legend`}
+                />
+              </div>
             ) : (
-              <input
-                id={`setting-${s.key}`}
-                value={values[s.key] ?? ""}
-                onChange={(e) => setField(s.key, e.target.value)}
-                className="w-full flex-1 rounded-xl border border-gray-200 px-4 py-2"
-              />
+              <>
+                <label className="block text-sm font-medium text-gray-700" htmlFor={`setting-${s.key}`}>
+                  {labelFor(s.key)}
+                </label>
+                {s.key === "featuredBannerContent" ? (
+                  <textarea
+                    id={`setting-${s.key}`}
+                    value={values[s.key] ?? ""}
+                    onChange={(e) => setField(s.key, e.target.value)}
+                    rows={18}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 font-sans text-sm leading-relaxed"
+                  />
+                ) : (
+                  <input
+                    id={`setting-${s.key}`}
+                    value={values[s.key] ?? ""}
+                    onChange={(e) => setField(s.key, e.target.value)}
+                    className="w-full flex-1 rounded-xl border border-gray-200 px-4 py-2"
+                  />
+                )}
+              </>
             )}
           </div>
         ))}
