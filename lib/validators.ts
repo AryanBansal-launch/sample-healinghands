@@ -69,6 +69,9 @@ export const bookingSchema = z
 export const purchaseRequestSchema = z.object({
   product: z.string(),
   productName: z.string(),
+  /** Variant subdocument id, or `"legacy"` / omit for single-SKU products without stored variants. */
+  variantId: z.string().optional(),
+  variantLabel: z.string().optional(),
   quantity: z.number().min(1),
   customerName: z.string().min(2, "Name is required"),
   customerEmail: z.string().email("Invalid email"),
@@ -142,6 +145,13 @@ export const certificationSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const adminProductVariantRowSchema = z.object({
+  label: z.string().min(1, "Each variant needs a label (e.g. 50 ml)"),
+  price: z.coerce.number().min(0),
+  stockLeft: z.coerce.number().int().min(0, "Stock cannot be negative"),
+  _id: z.string().optional(),
+});
+
 /** Admin product form — optional lists, coerced booleans from checkboxes */
 export const adminProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -150,12 +160,10 @@ export const adminProductSchema = z.object({
   benefits: z.array(z.string()).default([]),
   usageInstructions: z.array(z.string()).default([]),
   safetyNotes: z.string().optional().default(""),
-  price: z.coerce.number().min(0),
   currency: z.string().default("INR"),
   images: z
     .array(z.string().min(1, "Image URL cannot be empty"))
     .min(1, "Add at least one product image"),
-  /** 0 = out of stock (Buy now disabled). Stored as `stockLeft`; `inStock` is derived when saving. */
-  stockLeft: z.coerce.number().int().min(0, "Stock cannot be negative"),
+  variants: z.array(adminProductVariantRowSchema).min(1, "Add at least one variant"),
   isActive: z.boolean(),
 });

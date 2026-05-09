@@ -1,6 +1,7 @@
 import { FEATURED_BANNER_SETTING_DEFAULTS } from "@/lib/featured-banner-defaults";
 import dbConnect from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
+import { cache } from "react";
 
 function mergeFeaturedDefaults(fromDb: Record<string, string>): Record<string, string> {
   const merged = { ...fromDb };
@@ -12,7 +13,7 @@ function mergeFeaturedDefaults(fromDb: Record<string, string>): Record<string, s
   return merged;
 }
 
-export async function getSiteSettingsMap(): Promise<Record<string, string>> {
+async function loadSiteSettingsMap(): Promise<Record<string, string>> {
   try {
     await dbConnect();
     const rows = await SiteSettings.find({}).lean();
@@ -29,3 +30,6 @@ export async function getSiteSettingsMap(): Promise<Record<string, string>> {
     return { ...FEATURED_BANNER_SETTING_DEFAULTS };
   }
 }
+
+/** Deduplicated per request (e.g. FeaturedBanner + JSON-LD in the same layout tree). */
+export const getSiteSettingsMap = cache(loadSiteSettingsMap);

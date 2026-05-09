@@ -4,47 +4,53 @@ import type { Metadata } from "next";
 import { ArrowLeft, CheckCircle2, Package, ShieldAlert, Sparkles } from "lucide-react";
 import dbConnect from "@/lib/mongodb";
 import { normalizeProductImages } from "@/lib/normalizeProductImages";
+import { serializeProductForPublic } from "@/lib/productVariants";
 import Product from "@/models/Product";
 import ProductImageGallery from "@/components/shop/ProductImageGallery";
+import ProductBuyActions, {
+  type ProductBuyActionsProduct,
+} from "@/components/shop/ProductBuyActions";
 
-type ProductDoc = {
-  name: string;
-  slug: string;
+async function getProduct(slug: string): Promise<ProductBuyActionsProduct & {
   description: string;
   benefits: string[];
   usageInstructions: string[];
   safetyNotes: string;
-  price: number;
-  currency: string;
   images: string[];
-  inStock: boolean;
-  stockLeft?: number;
-};
-
-async function getProduct(slug: string): Promise<ProductDoc | null> {
+} | null> {
   await dbConnect();
   const doc = await Product.findOne({ slug, isActive: true }).lean();
   if (!doc) return null;
-  const p = JSON.parse(JSON.stringify(doc)) as ProductDoc & { _id?: string };
-  const stockLeft =
-    typeof p.stockLeft === "number" && Number.isFinite(p.stockLeft)
-      ? Math.max(0, Math.floor(p.stockLeft))
-      : undefined;
-  const inStock = stockLeft !== undefined ? stockLeft > 0 : p.inStock !== false;
+  const raw = JSON.parse(JSON.stringify(doc)) as Record<string, unknown>;
+  raw.images = normalizeProductImages(
+    Array.isArray(raw.images) && (raw.images as string[]).length > 0
+      ? (raw.images as string[])
+      : undefined
+  );
+  const pub = serializeProductForPublic(raw) as Record<string, unknown>;
+  const variants = (pub.variants ?? []) as ProductBuyActionsProduct["variants"];
+  const priceRange = (pub.priceRange ?? {
+    min: Number(pub.price) || 0,
+    max: Number(pub.price) || 0,
+    showFrom: false,
+  }) as ProductBuyActionsProduct["priceRange"];
+
   return {
-    name: p.name,
-    slug: p.slug,
-    description: p.description,
-    benefits: Array.isArray(p.benefits) ? p.benefits : [],
-    usageInstructions: Array.isArray(p.usageInstructions) ? p.usageInstructions : [],
-    safetyNotes: p.safetyNotes || "",
-    price: p.price,
-    currency: p.currency || "INR",
-    images: normalizeProductImages(
-      Array.isArray(p.images) && p.images.length > 0 ? p.images : undefined
-    ),
-    inStock,
-    stockLeft,
+    name: String(pub.name ?? ""),
+    slug: String(pub.slug ?? ""),
+    description: String(pub.description ?? ""),
+    benefits: Array.isArray(pub.benefits) ? (pub.benefits as string[]) : [],
+    usageInstructions: Array.isArray(pub.usageInstructions)
+      ? (pub.usageInstructions as string[])
+      : [],
+    safetyNotes: String(pub.safetyNotes ?? ""),
+    images: Array.isArray(pub.images) ? (pub.images as string[]) : [],
+    inStock: pub.inStock !== false,
+    currency: String(pub.currency ?? "INR"),
+    price: Number(pub.price) || 0,
+    stockLeft: Number(pub.stockLeft) || 0,
+    variants,
+    priceRange,
   };
 }
 
@@ -73,9 +79,6 @@ export default async function ProductCatalogPage({
     notFound();
   }
 
-  const priceLabel =
-    product.currency === "INR" ? `₹${product.price}` : `${product.currency} ${product.price}`;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-lavender-50 to-gold-50 py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,50 +100,10 @@ export default async function ProductCatalogPage({
               <h1 className="font-serif text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 {product.name}
               </h1>
-              <div className="mt-4 flex flex-wrap items-center gap-4">
-                <span className="text-3xl md:text-4xl font-bold text-gray-900">{priceLabel}</span>
-                {product.inStock ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 text-primary-900 px-3 py-1 text-sm font-semibold">
-                    <CheckCircle2 className="w-4 h-4" aria-hidden />
-                    {typeof product.stockLeft === "number"
-                      ? `${product.stockLeft} in stock`
-                      : "In stock"}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 text-amber-900 px-3 py-1 text-sm font-semibold">
-                    Currently unavailable
-                  </span>
-                )}
-              </div>
+              <ProductBuyActions product={product} />
             </div>
 
             <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              {product.inStock ? (
-                <Link
-                  href={`/shop?open=${encodeURIComponent(product.slug)}`}
-                  className="inline-flex justify-center items-center rounded-2xl bg-primary-600 px-8 py-4 text-lg font-bold text-white shadow-lg hover:bg-primary-700 transition-colors"
-                >
-                  Buy now
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex cursor-not-allowed justify-center items-center rounded-2xl bg-gray-200 px-8 py-4 text-lg font-bold text-gray-500 shadow-inner"
-                  title="This product is currently out of stock"
-                >
-                  Buy now
-                </button>
-              )}
-              <Link
-                href="/contact"
-                className="inline-flex justify-center items-center rounded-2xl border-2 border-primary-200 bg-white px-8 py-4 text-lg font-semibold text-primary-800 hover:bg-primary-50 transition-colors"
-              >
-                Ask a question
-              </Link>
-            </div>
           </div>
         </div>
 

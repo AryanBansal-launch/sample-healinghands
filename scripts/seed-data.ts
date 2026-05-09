@@ -281,7 +281,12 @@ const products = [
       "Use before meditation or sleep"
     ],
     safetyNotes: "For external use only. Keep away from eyes.",
-    price: 999,
+    variants: [
+      { label: "30 ml", price: 499, stockLeft: 20 },
+      { label: "100 ml", price: 999, stockLeft: 20 },
+      { label: "200 ml", price: 1799, stockLeft: 10 },
+    ],
+    price: 499,
     images: ["/products/spray.jpeg"],
     stockLeft: 50,
     inStock: true,

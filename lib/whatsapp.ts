@@ -1,7 +1,28 @@
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919217046526";
 
+/** `wa.me` link to a specific business number (digits only, with country code). */
+export function buildWaMeUrl(phoneDigits: string, message: string): string {
+  const num = phoneDigits.replace(/\D/g, "");
+  return `https://wa.me/${num}?text=${encodeURIComponent(message)}`;
+}
+
 export function buildWhatsAppURL(message: string): string {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return buildWaMeUrl(WHATSAPP_NUMBER, message);
+}
+
+export function buildContactInquiryMessage(input: {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}): string {
+  return (
+    `Hello! I'd like to get in touch via the website contact form.\n\n` +
+    `Name: ${input.name}\n` +
+    `Email: ${input.email}\n` +
+    `Phone: ${input.phone}\n\n` +
+    `Message:\n${input.message}`
+  );
 }
 
 /** Strip non-digits; add India country code when the number is 10 digits (mobile). */

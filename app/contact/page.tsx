@@ -23,6 +23,8 @@ const whatsappFallback = "919217046526"
 
 export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [contactEmail, setContactEmail] = useState(DEFAULT_PUBLIC_CONTACT_EMAIL)
   const [whatsappNumber, setWhatsappNumber] = useState(whatsappFallback)
 
@@ -46,12 +48,37 @@ export default function ContactPage() {
     resolver: zodResolver(contactSchema),
   })
 
-  const onSubmit = (data: ContactFormData) => {
-    console.log('Contact form submitted:', data)
-    // In a real app, this would send data to a backend API
-    setIsSubmitted(true)
-    reset()
-    setTimeout(() => setIsSubmitted(false), 5000)
+  const onSubmit = async (data: ContactFormData) => {
+    setSubmitError(null)
+    setIsSubmitting(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const payload: { error?: string; whatsappUrl?: string } = await res
+        .json()
+        .catch(() => ({}))
+      if (!res.ok) {
+        setSubmitError(
+          typeof payload.error === 'string'
+            ? payload.error
+            : 'Something went wrong. Please try again.'
+        )
+        return
+      }
+      if (payload.whatsappUrl) {
+        window.open(payload.whatsappUrl, '_blank', 'noopener,noreferrer')
+      }
+      setIsSubmitted(true)
+      reset()
+      setTimeout(() => setIsSubmitted(false), 5000)
+    } catch {
+      setSubmitError('Could not connect. Please try again or use the phone or WhatsApp links on the left.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -200,7 +227,7 @@ export default function ContactPage() {
                   type="tel"
                   id="phone"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="+91 93557 33831 or +91 92170 46526"
+                  placeholder="Your phone number"
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
@@ -223,6 +250,12 @@ export default function ContactPage() {
                 )}
               </div>
 
+              {submitError && (
+                <p className="text-sm text-red-600" role="alert">
+                  {submitError}
+                </p>
+              )}
+
               {isSubmitted && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
@@ -230,16 +263,19 @@ export default function ContactPage() {
                   className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3"
                 >
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <p className="text-green-800">Thank you! We&apos;ll get back to you soon.</p>
+                  <p className="text-green-800">
+                    Thank you! If WhatsApp didn&apos;t open, use the WhatsApp card on the left.
+                  </p>
                 </motion.div>
               )}
 
               <button
                 type="submit"
-                className="w-full bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                disabled={isSubmitting}
+                className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-8 py-4 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
                 <Send className="w-5 h-5" />
-                <span>Send Message</span>
+                <span>{isSubmitting ? 'Opening WhatsApp…' : 'Send Message'}</span>
               </button>
             </form>
           </motion.div>

@@ -4,9 +4,12 @@ import { AdminGridCardsSkeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, X, Loader2, ChevronUp, ChevronDown } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { adminProductSchema } from "@/lib/validators";
+import type { z } from "zod";
+
+type AdminProductFormValues = z.infer<typeof adminProductSchema>;
 import AdminImageUpload from "@/components/admin/AdminImageUpload";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,8 +27,9 @@ export default function AdminProductsPage() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
-  } = useForm({
+  } = useForm<AdminProductFormValues>({
     resolver: zodResolver(adminProductSchema),
     defaultValues: {
       name: "",
@@ -34,12 +38,16 @@ export default function AdminProductsPage() {
       benefits: [] as string[],
       usageInstructions: [] as string[],
       safetyNotes: "",
-      price: 0,
       currency: "INR",
       images: [] as string[],
-      stockLeft: 10,
+      variants: [{ label: "Standard", price: 0, stockLeft: 10 }],
       isActive: true,
     },
+  });
+
+  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
+    control,
+    name: "variants",
   });
 
   useEffect(() => {
@@ -95,6 +103,7 @@ export default function AdminProductsPage() {
         usageInstructions: data.usageInstructions?.length ? data.usageInstructions : [],
         safetyNotes: data.safetyNotes ?? "",
         images: data.images?.length ? data.images : ["/products/spray.jpeg"],
+        variants: data.variants?.length ? data.variants : [{ label: "Standard", price: 0, stockLeft: 0 }],
       };
 
       const url = editingProduct
@@ -142,6 +151,29 @@ export default function AdminProductsPage() {
   const openModal = (product: any = null) => {
     if (product) {
       setEditingProduct(product);
+      const variantRows =
+        Array.isArray(product.variants) && product.variants.length > 0
+          ? product.variants.map((v: Record<string, unknown>) => ({
+              label: String(v.label ?? ""),
+              price: typeof v.price === "number" ? v.price : Number(v.price) || 0,
+              stockLeft:
+                typeof v.stockLeft === "number"
+                  ? v.stockLeft
+                  : Math.floor(Number(v.stockLeft) || 0),
+              _id: v._id ? String(v._id) : undefined,
+            }))
+          : [
+              {
+                label: "Standard",
+                price: typeof product.price === "number" ? product.price : Number(product.price) || 0,
+                stockLeft:
+                  typeof product.stockLeft === "number"
+                    ? product.stockLeft
+                    : product.inStock !== false
+                      ? 10
+                      : 0,
+              },
+            ];
       reset({
         name: product.name ?? "",
         slug: product.slug ?? "",
@@ -151,15 +183,9 @@ export default function AdminProductsPage() {
           ? product.usageInstructions
           : [],
         safetyNotes: product.safetyNotes ?? "",
-        price: typeof product.price === "number" ? product.price : Number(product.price) || 0,
         currency: product.currency || "INR",
         images: product.images?.length ? product.images : ["/products/spray.jpeg"],
-        stockLeft:
-          typeof product.stockLeft === "number"
-            ? product.stockLeft
-            : product.inStock !== false
-              ? 1
-              : 0,
+        variants: variantRows,
         isActive: product.isActive !== false,
       });
     } else {
@@ -171,10 +197,9 @@ export default function AdminProductsPage() {
         benefits: [],
         usageInstructions: [],
         safetyNotes: "",
-        price: 0,
         currency: "INR",
-        images: ["/products/spray.jpeg"], // Default placeholder
-        stockLeft: 10,
+        images: ["/products/spray.jpeg"],
+        variants: [{ label: "Standard", price: 0, stockLeft: 10 }],
         isActive: true,
       });
     }
@@ -230,7 +255,15 @@ export default function AdminProductsPage() {
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
-              <p className="text-primary-600 font-bold">₹{product.price}</p>
+              <p className="text-primary-600 font-bold">
+                {Array.isArray(product.variants) && product.variants.length > 1
+                  ? `From ₹${Math.min(
+                      ...product.variants.map((v: { price?: number }) =>
+                        typeof v.price === "number" ? v.price : Number(v.price) || 0
+                      )
+                    )}`
+                  : `₹${product.price}`}
+              </p>
               <p className="text-sm text-gray-600">
                 Stock:{" "}
                 <span className="font-semibold text-gray-800">
@@ -309,44 +342,91 @@ export default function AdminProductsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Price (INR)</label>
+              <div className="space-y-4 rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-900">Variants</label>
+                    <p className="text-xs text-gray-500">
+                      Add sizes or volumes — each row has its own price and stock (e.g. 50 ml, 100 ml).
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => appendVariant({ label: "", price: 0, stockLeft: 0 })}
+                    className="inline-flex items-center gap-1 rounded-xl border border-primary-200 bg-white px-3 py-2 text-sm font-semibold text-primary-800 hover:bg-primary-50"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add variant
+                  </button>
+                </div>
+                {variantFields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-[1fr_minmax(0,120px)_minmax(0,120px)_auto]"
+                  >
+                    <input type="hidden" {...register(`variants.${index}._id` as const)} />
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Label</label>
+                      <input
+                        {...register(`variants.${index}.label`)}
+                        placeholder="e.g. 50 ml"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                      {errors.variants?.[index]?.label && (
+                        <p className="text-xs text-red-500">
+                          {(errors.variants[index] as { label?: { message?: string } })?.label
+                            ?.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Price (₹)</label>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        {...register(`variants.${index}.price`, { valueAsNumber: true })}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-600">Stock</label>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        {...register(`variants.${index}.stockLeft`, { valueAsNumber: true })}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div className="flex items-end justify-end">
+                      <button
+                        type="button"
+                        disabled={variantFields.length <= 1}
+                        onClick={() => removeVariant(index)}
+                        className="rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {errors.variants && typeof errors.variants.message === "string" && (
+                  <p className="text-xs text-red-500">{errors.variants.message}</p>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-8 pt-2">
+                <label className="flex cursor-pointer items-center space-x-2">
                   <input
-                    type="number"
-                    {...register("price", { valueAsNumber: true })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none"
+                    type="checkbox"
+                    {...register("isActive", {
+                      setValueAs: (v: unknown) => v === true || v === "on",
+                    })}
+                    className="h-4 w-4 rounded text-primary-600"
                   />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold">Stock left (units)</label>
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    {...register("stockLeft", { valueAsNumber: true })}
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Use 0 for out of stock (Buy now is disabled on the shop). Any number greater than
-                    0 counts as in stock.
-                  </p>
-                  {errors.stockLeft && (
-                    <p className="text-xs text-red-500">{errors.stockLeft.message as string}</p>
-                  )}
-                </div>
-                <div className="flex items-center space-x-8 md:col-span-2 md:pt-2">
-                  <label className="flex cursor-pointer items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      {...register("isActive", {
-                        setValueAs: (v: unknown) => v === true || v === "on",
-                      })}
-                      className="h-4 w-4 rounded text-primary-600"
-                    />
-                    <span className="text-sm font-semibold">Active (visible on shop)</span>
-                  </label>
-                </div>
+                  <span className="text-sm font-semibold">Active (visible on shop)</span>
+                </label>
               </div>
 
               <div className="space-y-4 border-t border-gray-100 pt-4">

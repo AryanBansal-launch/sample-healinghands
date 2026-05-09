@@ -9,11 +9,22 @@ import { ShoppingCart, X, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { purchaseRequestSchema } from "@/lib/validators";
+import type { z } from "zod";
+
+type PurchaseFormValues = z.infer<typeof purchaseRequestSchema>;
 import { ShopPageSkeleton } from "@/components/ui/skeleton";
 import { buildPurchaseMessage, buildWhatsAppURL } from "@/lib/whatsapp";
 
 function isRemoteImage(src: string) {
   return src.startsWith("http://") || src.startsWith("https://");
+}
+
+function pickVariantId(product: Record<string, unknown>, preferred?: string | null) {
+  const variants = (product.variants ?? []) as { id: string; inStock?: boolean }[];
+  if (variants.length === 0) return "";
+  if (preferred && variants.some((v) => v.id === preferred)) return preferred;
+  const inStock = variants.find((v) => v.inStock)?.id;
+  return inStock ?? variants[0]?.id ?? "";
 }
 
 function ShopPageInner() {
@@ -22,6 +33,7 @@ function ShopPageInner() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const handledOpenSlug = useRef<string | null>(null);
@@ -30,21 +42,48 @@ function ShopPageInner() {
     register,
     handleSubmit,
     reset,
-  } = useForm({
+    setValue,
+  } = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseRequestSchema),
+    defaultValues: {
+      product: "",
+      productName: "",
+      quantity: 1,
+      totalAmount: 0,
+      customerName: "",
+      customerEmail: "",
+      customerPhone: "",
+      shippingAddress: {
+        country: "India",
+        addressLine1: "",
+        city: "",
+        state: "",
+        pincode: "",
+      },
+    },
   });
 
   const openPurchaseModal = useCallback(
-    (product: any, qty = 1) => {
+    (product: any, qty = 1, preferredVariantId?: string | null) => {
       if (product?.inStock === false) return;
+      const vid = pickVariantId(product, preferredVariantId ?? undefined);
+      const variants = product.variants ?? [];
+      const sel = variants.find((v: any) => v.id === vid);
+      if (sel && sel.inStock === false) return;
+      const unit = sel?.price ?? product.price ?? 0;
+
       setSelectedProduct(product);
+      setSelectedVariantId(vid);
       setQuantity(qty);
       setIsModalOpen(true);
       reset({
         product: product._id,
         productName: product.name,
         quantity: qty,
-        totalAmount: product.price * qty,
+        variantId: vid || undefined,
+        variantLabel: sel?.label,
+        totalAmount: unit * qty,
+        shippingAddress: { country: "India" },
       });
     },
     [reset]
@@ -63,6 +102,7 @@ function ShopPageInner() {
   useEffect(() => {
     if (loading || !products.length) return;
     const slug = searchParams.get("open");
+    const variantParam = searchParams.get("variant");
     if (!slug) {
       handledOpenSlug.current = null;
       return;
@@ -72,19 +112,32 @@ function ShopPageInner() {
     if (p) {
       handledOpenSlug.current = slug;
       router.replace("/shop", { scroll: false });
-      if (p.inStock !== false) openPurchaseModal(p, 1);
+      if (p.inStock !== false) openPurchaseModal(p, 1, variantParam);
     }
   }, [loading, products, searchParams, openPurchaseModal, router]);
 
   useEffect(() => {
     if (!selectedProduct) return;
-    reset({
-      product: selectedProduct._id,
-      productName: selectedProduct.name,
-      quantity,
-      totalAmount: selectedProduct.price * quantity,
-    });
-  }, [quantity, selectedProduct, reset]);
+    const variants = selectedProduct.variants ?? [];
+    const sel = variants.find((v: any) => v.id === selectedVariantId);
+    const unit = sel?.price ?? selectedProduct.price ?? 0;
+    const maxQ =
+      typeof sel?.stockLeft === "number" && Number.isFinite(sel.stockLeft)
+        ? Math.max(0, Math.floor(sel.stockLeft))
+        : undefined;
+    let q = quantity;
+    if (maxQ !== undefined) {
+      q = Math.min(q, maxQ);
+    }
+    if (q < 1 && maxQ !== undefined && maxQ > 0) q = 1;
+    if (q !== quantity) setQuantity(q);
+
+    setValue("variantId", selectedVariantId || undefined);
+    setValue("variantLabel", sel?.label);
+    setValue("productName", selectedProduct.name);
+    setValue("quantity", q);
+    setValue("totalAmount", unit * q);
+  }, [quantity, selectedProduct, selectedVariantId, setValue]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -117,6 +170,16 @@ function ShopPageInner() {
     return <ShopPageSkeleton />;
   }
 
+  const modalVariant =
+    selectedProduct?.variants?.find((v: any) => v.id === selectedVariantId) ?? null;
+  const modalUnit = modalVariant ? modalVariant.price : selectedProduct?.price ?? 0;
+  const modalMax =
+    modalVariant && typeof modalVariant.stockLeft === "number"
+      ? Math.max(0, Math.floor(modalVariant.stockLeft))
+      : undefined;
+  const modalShowVariants =
+    Array.isArray(selectedProduct?.variants) && selectedProduct.variants.length > 1;
+
   return (
     <div className="min-h-screen bg-gray-50 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,7 +210,11 @@ function ShopPageInner() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h3>
                   <p className="text-gray-600 mb-6 line-clamp-2 flex-1">{product.description}</p>
                   <div className="flex items-center justify-between gap-3 mb-4">
-                    <span className="text-3xl font-bold text-gray-900">₹{product.price}</span>
+                    <span className="text-3xl font-bold text-gray-900">
+                      {product.priceRange?.showFrom
+                        ? `From ₹${product.priceRange.min}`
+                        : `₹${product.price}`}
+                    </span>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Link
@@ -188,7 +255,10 @@ function ShopPageInner() {
                 <h2 className="text-2xl font-serif font-bold">Complete Your Purchase</h2>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setSelectedProduct(null);
+                  }}
                   className="p-2 hover:bg-gray-200 rounded-full"
                   aria-label="Close"
                 >
@@ -197,12 +267,36 @@ function ShopPageInner() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto">
-                <div className="bg-primary-50 p-4 rounded-2xl flex items-center justify-between">
-                  <div>
+                <input type="hidden" {...register("product")} />
+                <input type="hidden" {...register("productName")} />
+                <input type="hidden" {...register("variantId")} />
+                <input type="hidden" {...register("variantLabel")} />
+                <input type="hidden" {...register("quantity", { valueAsNumber: true })} />
+                <input type="hidden" {...register("totalAmount", { valueAsNumber: true })} />
+
+                <div className="bg-primary-50 p-4 rounded-2xl flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
                     <p className="font-bold text-gray-900">{selectedProduct?.name}</p>
-                    <p className="text-sm text-gray-600">Unit Price: ₹{selectedProduct?.price}</p>
+                    <p className="text-sm text-gray-600">Unit Price: ₹{modalUnit}</p>
+                    {modalShowVariants && (
+                      <label className="block pt-2">
+                        <span className="sr-only">Choose option</span>
+                        <select
+                          value={selectedVariantId}
+                          onChange={(e) => setSelectedVariantId(e.target.value)}
+                          className="mt-1 w-full max-w-xs rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900"
+                        >
+                          {selectedProduct.variants.map((v: any) => (
+                            <option key={v.id} value={v.id} disabled={v.inStock === false}>
+                              {v.label} — ₹{v.price}
+                              {v.inStock === false ? " (Unavailable)" : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 shrink-0">
                     <button
                       type="button"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -210,11 +304,16 @@ function ShopPageInner() {
                     >
                       -
                     </button>
-                    <span className="font-bold">{quantity}</span>
+                    <span className="font-bold w-8 text-center">{quantity}</span>
                     <button
                       type="button"
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center font-bold"
+                      onClick={() =>
+                        setQuantity(
+                          modalMax !== undefined ? Math.min(modalMax, quantity + 1) : quantity + 1
+                        )
+                      }
+                      disabled={modalMax !== undefined && quantity >= modalMax}
+                      className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center font-bold disabled:opacity-40"
                     >
                       +
                     </button>
@@ -269,12 +368,17 @@ function ShopPageInner() {
                   <div className="text-gray-600">
                     Total Amount:{" "}
                     <span className="text-2xl font-bold text-gray-900 ml-2">
-                      ₹{selectedProduct?.price * quantity}
+                      ₹{modalUnit * quantity}
                     </span>
                   </div>
                   <button
                     type="submit"
-                    className="bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-primary-700 shadow-lg"
+                    disabled={
+                      !modalVariant?.inStock ||
+                      quantity < 1 ||
+                      (modalMax !== undefined && modalMax === 0)
+                    }
+                    className="bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-primary-700 shadow-lg disabled:cursor-not-allowed disabled:bg-gray-300 disabled:hover:bg-gray-300"
                   >
                     Proceed to Purchase
                   </button>

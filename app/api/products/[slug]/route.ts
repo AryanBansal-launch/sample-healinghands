@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/mongodb";
 import { normalizeProductImages } from "@/lib/normalizeProductImages";
+import { serializeProductForPublic } from "@/lib/productVariants";
 import Product from "@/models/Product";
 import { NextResponse } from "next/server";
 
@@ -15,10 +16,11 @@ export async function GET(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
     const p = product as Record<string, unknown>;
-    return NextResponse.json({
+    const withImages = {
       ...p,
       images: normalizeProductImages(p.images as string[] | undefined),
-    });
+    };
+    return NextResponse.json(serializeProductForPublic(withImages));
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
   }

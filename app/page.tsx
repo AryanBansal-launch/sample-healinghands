@@ -10,7 +10,17 @@ import FinalCTA from '@/components/sections/FinalCTA'
 
 export const metadata: Metadata = {
   title: 'The Healing Hands - Energy Healing for a Calm, Balanced & Happy Life',
-  description: 'Remote Pranic Healing • Aura Cleansing • Emotional & Mental Wellness. Experience healing energy for a calm, balanced & happy life.',
+  description:
+    'Remote Pranic Healing • Aura Cleansing • Emotional & Mental Wellness. Experience healing energy for a calm, balanced & happy life.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'The Healing Hands - Energy Healing for a Calm, Balanced & Happy Life',
+    description:
+      'Remote Pranic Healing • Aura Cleansing • Emotional & Mental Wellness. Experience healing energy for a calm, balanced & happy life.',
+    url: '/',
+  },
 }
 
 export default function Home() {
