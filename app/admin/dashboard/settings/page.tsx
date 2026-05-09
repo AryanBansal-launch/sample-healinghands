@@ -1,5 +1,6 @@
 "use client";
 
+import AdminVideoUpload from "@/components/admin/AdminVideoUpload";
 import BookingTimeSlotsEditor from "@/components/admin/BookingTimeSlotsEditor";
 import { AdminSettingsSkeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -12,19 +13,36 @@ const SETTING_LABELS: Record<string, string> = {
   tagline: "Tagline",
   featuredBannerEnabled: "Featured banner — show on site",
   featuredBannerContent: "Featured banner — full message (line breaks preserved)",
+  founderPracticeVideoUrl:
+    "Founder video — upload to Cloudinary below, or paste a YouTube / direct video URL. Same clip is used on Home (teaser) and About (full).",
+  founderPracticeVideoTeaserSeconds:
+    "Home teaser length (seconds). YouTube: iframe end time. Direct video: pauses after this many seconds.",
+  founderPracticeVideoPublicId:
+    "Internal — Cloudinary public ID for the uploaded founder video (auto-filled on upload; used to delete from Cloudinary).",
   bookingTimeSlots: "Book a session — allowed time slots",
 };
 
 function sortSettings<T extends { key: string }>(list: T[]): T[] {
   const rank = (k: string) => {
     if (k.startsWith("featuredBanner")) return 0;
-    if (k === "bookingTimeSlots") return 1;
-    return 2;
+    if (k.startsWith("founderPractice")) return 1;
+    if (k === "bookingTimeSlots") return 2;
+    return 3;
   };
+  const founderKeyOrder = (k: string) => {
+    if (k === "founderPracticeVideoUrl") return 0;
+    if (k === "founderPracticeVideoPublicId") return 1;
+    if (k === "founderPracticeVideoTeaserSeconds") return 2;
+    return 3;
+  };
+
   return [...list].sort((a, b) => {
     const ra = rank(a.key);
     const rb = rank(b.key);
     if (ra !== rb) return ra - rb;
+    if (a.key.startsWith("founderPractice") && b.key.startsWith("founderPractice")) {
+      return founderKeyOrder(a.key) - founderKeyOrder(b.key);
+    }
     return a.key.localeCompare(b.key);
   });
 }
@@ -134,7 +152,9 @@ export default function AdminSettingsPage() {
       )}
 
       <div className="space-y-6 rounded-3xl bg-white p-8 shadow-sm">
-        {rows.map((s) => (
+        {rows
+          .filter((s) => s.key !== "founderPracticeVideoPublicId")
+          .map((s) => (
           <div key={s.key} className="space-y-2">
             {s.key === "featuredBannerEnabled" ? (
               <fieldset>
@@ -210,9 +230,11 @@ export default function AdminSettingsPage() {
               </div>
             ) : (
               <>
-                <label className="block text-sm font-medium text-gray-700" htmlFor={`setting-${s.key}`}>
-                  {labelFor(s.key)}
-                </label>
+                {s.key !== "founderPracticeVideoUrl" && (
+                  <label className="block text-sm font-medium text-gray-700" htmlFor={`setting-${s.key}`}>
+                    {labelFor(s.key)}
+                  </label>
+                )}
                 {s.key === "featuredBannerContent" ? (
                   <textarea
                     id={`setting-${s.key}`}
@@ -221,6 +243,34 @@ export default function AdminSettingsPage() {
                     rows={18}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 font-sans text-sm leading-relaxed"
                   />
+                ) : s.key === "founderPracticeVideoUrl" ? (
+                  <div className="space-y-4">
+                    <p className="text-sm font-medium text-gray-700">{labelFor(s.key)}</p>
+                    <AdminVideoUpload
+                      label="Upload file (stored on Cloudinary)"
+                      folder="healinghands/founder-practice"
+                      value={values[s.key] ?? ""}
+                      publicId={values.founderPracticeVideoPublicId ?? ""}
+                      onChange={(url) => setField(s.key, url)}
+                      onPublicIdChange={(pid) => setField("founderPracticeVideoPublicId", pid)}
+                    />
+                    <div className="space-y-2">
+                      <span className="text-xs font-medium text-gray-600">
+                        Or paste a URL (YouTube or direct link — replaces uploaded URL)
+                      </span>
+                      <textarea
+                        id={`setting-${s.key}`}
+                        value={values[s.key] ?? ""}
+                        onChange={(e) => {
+                          setField(s.key, e.target.value);
+                          setField("founderPracticeVideoPublicId", "");
+                        }}
+                        rows={3}
+                        placeholder="https://www.youtube.com/watch?v=… or paste Cloudinary URL after upload"
+                        className="w-full rounded-xl border border-gray-200 px-4 py-3 font-mono text-sm leading-relaxed"
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <input
                     id={`setting-${s.key}`}

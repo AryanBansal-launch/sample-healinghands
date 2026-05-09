@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 
 const benefits = [
-  'Experienced healer with multiple certifications',
+  'Experienced healer with documented professional training',
   'Remote healing support from anywhere',
   'Gentle & non-invasive approach',
   'Energy-based wellness methodology',

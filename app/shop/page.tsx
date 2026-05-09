@@ -36,6 +36,8 @@ function ShopPageInner() {
   const [selectedVariantId, setSelectedVariantId] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  const [purchaseSubmitting, setPurchaseSubmitting] = useState(false);
   const handledOpenSlug = useRef<string | null>(null);
 
   const {
@@ -75,6 +77,7 @@ function ShopPageInner() {
       setSelectedProduct(product);
       setSelectedVariantId(vid);
       setQuantity(qty);
+      setPurchaseError(null);
       setIsModalOpen(true);
       reset({
         product: product._id,
@@ -140,12 +143,15 @@ function ShopPageInner() {
   }, [quantity, selectedProduct, selectedVariantId, setValue]);
 
   const onSubmit = async (data: any) => {
+    setPurchaseError(null);
+    setPurchaseSubmitting(true);
     try {
       const res = await fetch("/api/purchases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      const body = await res.json().catch(() => ({}));
 
       if (res.ok) {
         const address = `${data.shippingAddress.addressLine1}, ${data.shippingAddress.city}, ${data.shippingAddress.state} - ${data.shippingAddress.pincode}`;
@@ -160,9 +166,21 @@ function ShopPageInner() {
         const whatsappUrl = buildWhatsAppURL(message);
         window.open(whatsappUrl, "_blank");
         setIsModalOpen(false);
+        return;
       }
+
+      const msg =
+        typeof body.error === "string"
+          ? body.error
+          : Array.isArray(body.error)
+            ? body.error.map((e: { message?: string }) => e.message).filter(Boolean).join(". ")
+            : `Could not complete purchase (${res.status}). Please try again.`;
+      setPurchaseError(msg || "Purchase failed.");
     } catch (err) {
       console.error(err);
+      setPurchaseError("Network error. Please check your connection and try again.");
+    } finally {
+      setPurchaseSubmitting(false);
     }
   };
 
@@ -298,6 +316,7 @@ function ShopPageInner() {
                   onClick={() => {
                     setIsModalOpen(false);
                     setSelectedProduct(null);
+                    setPurchaseError(null);
                   }}
                   className="p-2 hover:bg-gray-200 rounded-full"
                   aria-label="Close"
@@ -307,6 +326,14 @@ function ShopPageInner() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6 overflow-y-auto">
+                {purchaseError && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                  >
+                    {purchaseError}
+                  </div>
+                )}
                 <input type="hidden" {...register("product")} />
                 <input type="hidden" {...register("productName")} />
                 <input type="hidden" {...register("variantId")} />
@@ -458,13 +485,14 @@ function ShopPageInner() {
                   <button
                     type="submit"
                     disabled={
+                      purchaseSubmitting ||
                       !modalVariant?.inStock ||
                       quantity < 1 ||
                       (modalMax !== undefined && modalMax === 0)
                     }
                     className="bg-primary-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-primary-700 shadow-lg disabled:cursor-not-allowed disabled:bg-gray-300 disabled:hover:bg-gray-300"
                   >
-                    Proceed to Purchase
+                    {purchaseSubmitting ? "Submitting…" : "Proceed to Purchase"}
                   </button>
                 </div>
               </form>

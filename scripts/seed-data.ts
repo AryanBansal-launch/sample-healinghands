@@ -9,6 +9,7 @@ import {
   DEFAULT_FEATURED_BANNER_CONTENT,
   DEFAULT_FEATURED_BANNER_ENABLED,
 } from "../lib/featured-banner-defaults";
+import { FOUNDER_PRACTICE_VIDEO_DEFAULTS } from "../lib/founder-practice-video";
 import { DEFAULT_PUBLIC_CONTACT_EMAIL } from "../lib/public-contact";
 import mongoose from "mongoose";
 import * as dotenv from "dotenv";
@@ -36,6 +37,12 @@ const SITE_SETTINGS_DEFAULTS: { key: string; value: string }[] = [
   { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
   { key: "featuredBannerContent", value: DEFAULT_FEATURED_BANNER_CONTENT },
   { key: "bookingTimeSlots", value: BOOKING_SLOTS_SETTING_DEFAULTS.bookingTimeSlots },
+  { key: "founderPracticeVideoUrl", value: FOUNDER_PRACTICE_VIDEO_DEFAULTS.founderPracticeVideoUrl },
+  {
+    key: "founderPracticeVideoTeaserSeconds",
+    value: FOUNDER_PRACTICE_VIDEO_DEFAULTS.founderPracticeVideoTeaserSeconds,
+  },
+  { key: "founderPracticeVideoPublicId", value: FOUNDER_PRACTICE_VIDEO_DEFAULTS.founderPracticeVideoPublicId },
 ];
 
 function normalizeCollectionName(raw: string): SeedableCollection | null {

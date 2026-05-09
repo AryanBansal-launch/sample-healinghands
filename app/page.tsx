@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Hero from '@/components/sections/Hero'
 import WhatWeDo from '@/components/sections/WhatWeDo'
 import FounderTeaser from '@/components/sections/FounderTeaser'
+import FounderPracticeVideoTeaserSection from '@/components/sections/FounderPracticeVideoTeaserSection'
 import HowItWorks from '@/components/sections/HowItWorks'
 import WhyHealingHands from '@/components/sections/WhyHealingHands'
 import TestimonialTeaser from '@/components/sections/TestimonialTeaser'
@@ -29,6 +30,7 @@ export default function Home() {
       <Hero />
       <WhatWeDo />
       <FounderTeaser />
+      <FounderPracticeVideoTeaserSection />
       <HowItWorks />
       <WhyHealingHands />
       <TestimonialTeaser />

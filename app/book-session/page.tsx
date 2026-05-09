@@ -203,6 +203,7 @@ export default function BookSessionPage() {
                 <select
                   {...register("preferredTime")}
                   disabled={slotsLoading || !dateReady || timeSlots.length === 0}
+                  aria-busy={slotsLoading && dateReady ? true : undefined}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:cursor-not-allowed disabled:bg-gray-100"
                 >
                   <option value="">
@@ -220,6 +221,24 @@ export default function BookSessionPage() {
                     </option>
                   ))}
                 </select>
+                {dateReady && slotsLoading && (
+                  <div
+                    className="mt-3 space-y-2"
+                    aria-live="polite"
+                    aria-busy="true"
+                  >
+                    <p className="text-xs font-medium text-primary-800">Loading available times for this date…</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[0, 1, 2, 3].map((i) => (
+                        <span
+                          key={i}
+                          className="h-9 w-[4.5rem] animate-pulse rounded-lg bg-gray-200/90"
+                          aria-hidden
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {errors.preferredTime && (
                   <p className="mt-1 text-xs text-red-500">{errors.preferredTime.message as string}</p>
                 )}

@@ -13,6 +13,10 @@ import {
 export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusMessage, setStatusMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   const fetchPurchases = async () => {
     try {
@@ -31,6 +35,7 @@ export default function PurchasesPage() {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
+    setStatusMessage(null);
     try {
       const res = await fetch(`/api/admin/purchases/${id}`, {
         method: "PATCH",
@@ -39,12 +44,21 @@ export default function PurchasesPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(typeof data.error === "string" ? data.error : `Update failed (${res.status})`);
+        const text =
+          typeof data.error === "string"
+            ? data.error
+            : `Update failed (${res.status})`;
+        setStatusMessage({ type: "error", text });
         return;
       }
+      setStatusMessage({ type: "success", text: "Purchase status updated." });
       fetchPurchases();
     } catch (err) {
       console.error(err);
+      setStatusMessage({
+        type: "error",
+        text: "Network error. Please try again.",
+      });
     }
   };
 
@@ -57,6 +71,26 @@ export default function PurchasesPage() {
           Purchase Requests
         </h1>
       </div>
+
+      {statusMessage && (
+        <div
+          role={statusMessage.type === "error" ? "alert" : "status"}
+          className={`flex items-start justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
+            statusMessage.type === "error"
+              ? "border-red-200 bg-red-50 text-red-800"
+              : "border-emerald-200 bg-emerald-50 text-emerald-900"
+          }`}
+        >
+          <span>{statusMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setStatusMessage(null)}
+            className="shrink-0 rounded-lg px-2 py-0.5 text-xs font-semibold opacity-80 hover:opacity-100"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">

@@ -90,7 +90,7 @@ export default function AdminCertificationsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this certification?")) return;
+    if (!confirm("Are you sure you want to delete this credential?")) return;
     try {
       const res = await fetch(`/api/admin/certifications/${id}`, { method: "DELETE" });
       if (res.ok) fetchCerts();
@@ -133,13 +133,15 @@ export default function AdminCertificationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-serif font-bold text-gray-900 sm:text-3xl">Certifications</h1>
+        <h1 className="text-2xl font-serif font-bold text-gray-900 sm:text-3xl">
+          Training & credentials
+        </h1>
         <button
           onClick={() => openModal()}
           className="inline-flex w-full shrink-0 items-center justify-center space-x-2 rounded-xl bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 sm:w-auto"
         >
           <Plus className="w-5 h-5" />
-          <span>Add Certification</span>
+          <span>Add credential</span>
         </button>
       </div>
 
@@ -197,7 +199,7 @@ export default function AdminCertificationsPage() {
             >
               <div className="flex flex-col gap-3 border-b border-gray-100 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <h2 className="text-2xl font-serif font-bold">
-                  {editingCert ? "Edit Certification" : "Add New Certification"}
+                  {editingCert ? "Edit credential" : "Add new credential"}
                 </h2>
                 <button onClick={closeModal} className="p-2 hover:bg-gray-200 rounded-full">
                   <X className="w-6 h-6" />
@@ -209,7 +211,7 @@ export default function AdminCertificationsPage() {
                 className="p-8 space-y-6 overflow-y-auto"
               >
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold">Certification Title</label>
+                  <label className="text-sm font-semibold">Title</label>
                   <input
                     {...register("title")}
                     placeholder="e.g. Master Pranic Healer"
@@ -223,7 +225,7 @@ export default function AdminCertificationsPage() {
                   <textarea
                     {...register("description")}
                     rows={3}
-                    placeholder="Brief details about the certification..."
+                    placeholder="Brief details (shown on About → Training & credentials)…"
                     className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary-500 outline-none"
                   />
                   {errors.description && <p className="text-xs text-red-500">{errors.description.message as string}</p>}
@@ -278,7 +280,7 @@ export default function AdminCertificationsPage() {
                     className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 shadow-lg flex items-center space-x-2"
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{editingCert ? "Update" : "Add Certification"}</span>
+                    <span>{editingCert ? "Update" : "Add credential"}</span>
                   </button>
                 </div>
               </form>

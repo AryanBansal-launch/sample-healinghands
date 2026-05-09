@@ -85,7 +85,7 @@ export function AdminTableSkeleton({ rows = 5 }: { rows?: number }) {
   );
 }
 
-/** Services, products, certifications admin grids */
+/** Services, products, admin grids */
 export function AdminGridCardsSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="space-y-6">
@@ -195,25 +195,6 @@ export function ServicesPageSkeleton() {
               <Skeleton className="mb-4 h-4 w-[92%]" />
               <Skeleton className="h-10 w-32 rounded-full" />
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Public: certifications grid */
-export function CertificationsPageSkeleton() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-lavender-50 to-gold-50 py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 space-y-4 text-center">
-          <Skeleton className="mx-auto h-14 w-80 max-w-full md:h-16 md:w-[32rem]" />
-          <Skeleton className="mx-auto h-6 w-full max-w-3xl" />
-        </div>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="aspect-[4/5] w-full rounded-2xl" />
           ))}
         </div>
       </div>

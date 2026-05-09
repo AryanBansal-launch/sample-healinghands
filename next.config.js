@@ -7,6 +7,11 @@ const nextConfig = {
         destination: "/products/spray.jpeg",
         permanent: true,
       },
+      {
+        source: "/certifications",
+        destination: "/about",
+        permanent: true,
+      },
     ]
   },
   images: {

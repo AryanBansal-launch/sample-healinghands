@@ -13,6 +13,8 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react'
+import AboutCredentialsPeek from '@/components/AboutCredentialsPeek'
+import FounderPracticeVideoFullSection from '@/components/sections/FounderPracticeVideoFullSection'
 
 const pillars = [
   {
@@ -276,6 +278,29 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
+        </motion.section>
+
+        <FounderPracticeVideoFullSection />
+
+        {/* Training & credentials — trust bridge (public gallery, not a service we sell) */}
+        <motion.section
+          id="training-credentials"
+          {...fadeUp}
+          transition={{ duration: 0.55 }}
+          className="mb-20 scroll-mt-28 rounded-3xl border border-primary-100/80 bg-gradient-to-br from-primary-50/90 via-white to-lavender-50/50 p-8 md:p-10"
+          aria-labelledby="about-credentials-heading"
+        >
+          <h2
+            id="about-credentials-heading"
+            className="font-serif text-2xl font-bold text-gray-900 md:text-3xl"
+          >
+            Training & credentials
+          </h2>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
+            See documents of Preyanka&apos;s professional trainings—shared so you can feel confident
+            in who you&apos;re working with. We do not sell or run certification programs.
+          </p>
+          <AboutCredentialsPeek />
         </motion.section>
 
         {/* CTAs */}

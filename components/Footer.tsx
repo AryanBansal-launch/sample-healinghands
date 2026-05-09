@@ -86,8 +86,8 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/certifications" className="text-primary-200 hover:text-white transition-colors">
-                  Certifications
+                <Link href="/about#training-credentials" className="text-primary-200 hover:text-white transition-colors">
+                  Training & credentials
                 </Link>
               </li>
               <li>

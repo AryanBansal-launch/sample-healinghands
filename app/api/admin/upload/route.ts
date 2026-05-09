@@ -1,7 +1,20 @@
 import { authOptions } from "@/lib/auth";
-import { uploadImage } from "@/lib/cloudinary";
+import { uploadImage, uploadVideo } from "@/lib/cloudinary";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+
+const IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
+
+const VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -29,12 +42,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Convert file to base64
-    const buffer = await file.arrayBuffer();
-    const base64Image = Buffer.from(buffer).toString("base64");
-    const dataURI = `data:${file.type};base64,${base64Image}`;
+    const mime = (file.type || "").toLowerCase();
+    const isVideo = mime.startsWith("video/");
+    if (isVideo && !VIDEO_TYPES.has(mime)) {
+      return NextResponse.json(
+        { error: "Unsupported video type. Use MP4, WebM, or QuickTime (MOV)." },
+        { status: 400 }
+      );
+    }
+    if (!isVideo && !IMAGE_TYPES.has(mime)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Use JPEG, PNG, WebP for images, or MP4 / WebM / MOV for video." },
+        { status: 400 }
+      );
+    }
 
-    const result = await uploadImage(dataURI, folder);
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+    const dataURI = `data:${mime || "application/octet-stream"};base64,${base64}`;
+
+    const result = isVideo ? await uploadVideo(dataURI, folder) : await uploadImage(dataURI, folder);
 
     return NextResponse.json({
       url: result.secure_url,

@@ -1,6 +1,7 @@
 import { authOptions } from "@/lib/auth";
 import { BOOKING_SLOTS_SETTING_DEFAULTS } from "@/lib/booking-time-slots";
 import { FEATURED_BANNER_SETTING_DEFAULTS } from "@/lib/featured-banner-defaults";
+import { FOUNDER_PRACTICE_VIDEO_DEFAULTS } from "@/lib/founder-practice-video";
 import dbConnect from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
 import { getServerSession } from "next-auth";
@@ -25,6 +26,7 @@ export async function GET() {
       ...Object.keys(fromDb),
       ...Object.keys(FEATURED_BANNER_SETTING_DEFAULTS),
       ...Object.keys(BOOKING_SLOTS_SETTING_DEFAULTS),
+      ...Object.keys(FOUNDER_PRACTICE_VIDEO_DEFAULTS),
     ]);
     const merged = Array.from(keys).sort().map((key) => ({
       key,
@@ -32,6 +34,7 @@ export async function GET() {
         fromDb[key] ??
         FEATURED_BANNER_SETTING_DEFAULTS[key] ??
         BOOKING_SLOTS_SETTING_DEFAULTS[key] ??
+        FOUNDER_PRACTICE_VIDEO_DEFAULTS[key] ??
         "",
     }));
     return NextResponse.json(merged);

@@ -1,11 +1,17 @@
 import { FEATURED_BANNER_SETTING_DEFAULTS } from "@/lib/featured-banner-defaults";
+import { FOUNDER_PRACTICE_VIDEO_DEFAULTS } from "@/lib/founder-practice-video";
 import dbConnect from "@/lib/mongodb";
 import SiteSettings from "@/models/SiteSettings";
 import { cache } from "react";
 
-function mergeFeaturedDefaults(fromDb: Record<string, string>): Record<string, string> {
+const SETTING_DEFAULTS: Record<string, string> = {
+  ...FEATURED_BANNER_SETTING_DEFAULTS,
+  ...FOUNDER_PRACTICE_VIDEO_DEFAULTS,
+};
+
+function mergeSettingDefaults(fromDb: Record<string, string>): Record<string, string> {
   const merged = { ...fromDb };
-  for (const [key, value] of Object.entries(FEATURED_BANNER_SETTING_DEFAULTS)) {
+  for (const [key, value] of Object.entries(SETTING_DEFAULTS)) {
     if (merged[key] === undefined) {
       merged[key] = value;
     }
@@ -25,9 +31,9 @@ async function loadSiteSettingsMap(): Promise<Record<string, string>> {
       }
       return acc;
     }, {});
-    return mergeFeaturedDefaults(fromDb);
+    return mergeSettingDefaults(fromDb);
   } catch {
-    return { ...FEATURED_BANNER_SETTING_DEFAULTS };
+    return { ...SETTING_DEFAULTS };
   }
 }
 

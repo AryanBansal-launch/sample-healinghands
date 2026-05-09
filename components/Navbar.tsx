@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,12 +13,23 @@ const navLinks = [
   { href: '/services', label: 'Services' },
   { href: '/shop', label: 'Shop' },
   { href: '/book-session', label: 'Book Session' },
-  { href: '/certifications', label: 'Certifications' },
   { href: '/testimonials', label: 'Testimonials' },
   { href: '/contact', label: 'Contact' },
 ]
 
+function pathOnly(href: string) {
+  const i = href.indexOf('#')
+  return i === -1 ? href : href.slice(0, i)
+}
+
+function linkIsActive(pathname: string, href: string) {
+  const path = pathOnly(href)
+  if (path === '/') return pathname === '/'
+  return pathname === path || pathname.startsWith(`${path}/`)
+}
+
 export default function Navbar() {
+  const pathname = usePathname()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -82,15 +94,23 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 overflow-x-auto px-1 md:flex lg:gap-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="shrink-0 rounded-full px-2.5 py-2 text-[13px] font-medium text-gray-600 transition-colors hover:bg-primary-50/90 hover:text-primary-800 lg:px-3.5 lg:text-sm"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = linkIsActive(pathname, link.href)
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`shrink-0 rounded-full px-2.5 py-2 text-[13px] font-medium transition-colors lg:px-3.5 lg:text-sm ${
+                    active
+                      ? 'bg-primary-100 text-primary-900 ring-1 ring-primary-200/80'
+                      : 'text-gray-600 hover:bg-primary-50/90 hover:text-primary-800'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </div>
 
           <button
@@ -115,16 +135,24 @@ export default function Navbar() {
             className="pointer-events-auto mt-2 w-full max-w-6xl overflow-hidden rounded-2xl border border-white/70 bg-white/92 shadow-xl shadow-primary-900/10 backdrop-blur-xl md:hidden"
           >
             <nav className="max-h-[min(70vh,28rem)] overflow-y-auto px-2 py-2" aria-label="Mobile navigation">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-xl px-4 py-3 text-[15px] font-medium text-gray-700 transition-colors hover:bg-primary-50/90 hover:text-primary-900"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const active = linkIsActive(pathname, link.href)
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    aria-current={active ? 'page' : undefined}
+                    className={`block rounded-xl px-4 py-3 text-[15px] font-medium transition-colors ${
+                      active
+                        ? 'bg-primary-50 text-primary-900'
+                        : 'text-gray-700 hover:bg-primary-50/90 hover:text-primary-900'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                )
+              })}
             </nav>
           </motion.div>
         )}

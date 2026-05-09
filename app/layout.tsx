@@ -77,8 +77,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen">
         <OrganizationJsonLd />
+        <a
+          href="#main-content"
+          className="fixed left-4 top-4 z-[100] -translate-y-[200%] rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg outline-none ring-2 ring-white/90 transition-transform duration-200 focus:translate-y-0 focus:outline-none"
+        >
+          Skip to main content
+        </a>
         <Navbar />
-        <main className="pt-24 sm:pt-[5.75rem]">
+        <main id="main-content" tabIndex={-1} className="pt-24 sm:pt-[5.75rem] outline-none">
           <FeaturedBanner />
           {children}
         </main>
