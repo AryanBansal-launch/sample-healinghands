@@ -32,11 +32,16 @@ export default function PurchasesPage() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await fetch(`/api/admin/purchases/${id}`, {
+      const res = await fetch(`/api/admin/purchases/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(typeof data.error === "string" ? data.error : `Update failed (${res.status})`);
+        return;
+      }
       fetchPurchases();
     } catch (err) {
       console.error(err);

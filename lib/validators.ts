@@ -149,6 +149,8 @@ export const adminProductVariantRowSchema = z.object({
   label: z.string().min(1, "Each variant needs a label (e.g. 50 ml)"),
   price: z.coerce.number().min(0),
   stockLeft: z.coerce.number().int().min(0, "Stock cannot be negative"),
+  /** Optional image URL for this SKU (shown in gallery when this variant is selected). */
+  image: z.string().optional().default(""),
   _id: z.string().optional(),
 });
 

@@ -1,21 +1,11 @@
 import dbConnect from "@/lib/mongodb";
-import {
-  LEGACY_VARIANT_ID,
-  getEffectiveVariants,
-  syncRootFromVariants,
-} from "@/lib/productVariants";
+import { LEGACY_VARIANT_ID, getEffectiveVariants } from "@/lib/productVariants";
+import { validatePurchaseStock } from "@/lib/purchaseInventory";
 import Product from "@/models/Product";
 import PurchaseRequest from "@/models/PurchaseRequest";
 import { purchaseRequestSchema } from "@/lib/validators";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
-
-type VariantLine = {
-  label: string;
-  price: number;
-  stockLeft: number;
-  _id?: mongoose.Types.ObjectId;
-};
 
 export async function POST(req: Request) {
   try {
@@ -31,13 +21,18 @@ export async function POST(req: Request) {
     const qty = validatedData.quantity;
     const requestedVid = validatedData.variantId;
 
+    const stockCheck = validatePurchaseStock(product, qty, requestedVid ?? null);
+    if (!stockCheck.ok) {
+      return NextResponse.json({ error: stockCheck.error }, { status: 400 });
+    }
+
+    const hasStoredVariants = Array.isArray(product.variants) && product.variants.length > 0;
     let unitPrice = 0;
     let variantLabelOut: string | undefined;
     let variantObjectId: mongoose.Types.ObjectId | undefined;
 
-    const hasStoredVariants = Array.isArray(product.variants) && product.variants.length > 0;
-
     if (hasStoredVariants) {
+      type VariantLine = { label: string; price: number; stockLeft: number; _id?: mongoose.Types.ObjectId };
       let sub: VariantLine | null = null;
       if (
         requestedVid &&
@@ -53,33 +48,14 @@ export async function POST(req: Request) {
       if (!sub) {
         return NextResponse.json({ error: "Select a valid variant" }, { status: 400 });
       }
-      if (sub.stockLeft < qty) {
-        return NextResponse.json({ error: "Not enough stock for this variant" }, { status: 400 });
-      }
       unitPrice = sub.price;
       variantLabelOut = sub.label;
       variantObjectId = sub._id as mongoose.Types.ObjectId;
-      sub.stockLeft -= qty;
-
-      const root = syncRootFromVariants(
-        product.variants!.map((v: VariantLine) => ({
-          price: v.price,
-          stockLeft: v.stockLeft,
-        }))
-      );
-      product.price = root.price;
-      product.stockLeft = root.stockLeft;
-      product.inStock = root.inStock;
     } else {
       const eff = getEffectiveVariants(product.toObject() as Record<string, unknown>);
       const line = eff[0];
-      if (!line.inStock || line.stockLeft < qty) {
-        return NextResponse.json({ error: "This product is out of stock" }, { status: 400 });
-      }
       unitPrice = line.price;
       variantLabelOut = line.label === "Standard" ? undefined : line.label;
-      product.stockLeft = Math.max(0, (product.stockLeft ?? 0) - qty);
-      product.inStock = product.stockLeft > 0;
     }
 
     const expectedTotal = unitPrice * qty;
@@ -95,8 +71,6 @@ export async function POST(req: Request) {
         ? `${product.name} — ${variantLabelOut}`
         : product.name;
 
-    await product.save();
-
     const purchase = new PurchaseRequest({
       product: validatedData.product,
       productName: displayName,
@@ -109,6 +83,7 @@ export async function POST(req: Request) {
       variantId: variantObjectId,
       variantLabel: variantLabelOut,
       whatsappRedirected: true,
+      stockDeducted: false,
     });
     await purchase.save();
 

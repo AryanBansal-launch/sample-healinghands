@@ -350,6 +350,18 @@ function ShopPageInner() {
                                   onChange={() => setSelectedVariantId(v.id)}
                                   className="h-4 w-4 shrink-0 border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
+                                {v.image ? (
+                                  <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                                    <Image
+                                      src={v.image}
+                                      alt=""
+                                      fill
+                                      className="object-cover"
+                                      sizes="44px"
+                                      unoptimized={isRemoteImage(v.image)}
+                                    />
+                                  </span>
+                                ) : null}
                                 <span className="flex min-w-0 flex-1 justify-between gap-2">
                                   <span className="font-medium text-gray-900">{v.label}</span>
                                   <span className="shrink-0 font-semibold text-primary-800">

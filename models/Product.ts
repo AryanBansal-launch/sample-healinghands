@@ -5,6 +5,8 @@ const ProductVariantSchema = new Schema(
     label: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     stockLeft: { type: Number, default: 0, min: 0 },
+    /** Optional hero image for this SKU (shown first in gallery when selected). */
+    image: { type: String },
   },
   { _id: true }
 );

@@ -27,6 +27,8 @@ const PurchaseRequestSchema = new Schema(
     },
     adminNotes: { type: String },
     whatsappRedirected: { type: Boolean, default: true },
+    /** True after inventory was decremented when the request was approved (confirmed). */
+    stockDeducted: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

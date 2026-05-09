@@ -6,10 +6,8 @@ import dbConnect from "@/lib/mongodb";
 import { normalizeProductImages } from "@/lib/normalizeProductImages";
 import { serializeProductForPublic } from "@/lib/productVariants";
 import Product from "@/models/Product";
-import ProductImageGallery from "@/components/shop/ProductImageGallery";
-import ProductBuyActions, {
-  type ProductBuyActionsProduct,
-} from "@/components/shop/ProductBuyActions";
+import ProductShopColumn from "@/components/shop/ProductShopColumn";
+import type { ProductBuyActionsProduct } from "@/components/shop/ProductBuyActions";
 
 async function getProduct(slug: string): Promise<ProductBuyActionsProduct & {
   description: string;
@@ -89,23 +87,7 @@ export default async function ProductCatalogPage({
           </Link>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          <ProductImageGallery images={product.images} alt={product.name} />
-
-          <div className="space-y-6">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-primary-700 mb-2">
-                The Healing Hands — Shop
-              </p>
-              <h1 className="font-serif text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                {product.name}
-              </h1>
-              <ProductBuyActions product={product} />
-            </div>
-
-            <p className="text-lg text-gray-700 leading-relaxed whitespace-pre-line">{product.description}</p>
-          </div>
-        </div>
+        <ProductShopColumn product={product} />
 
         <div className="mt-16 grid gap-10 md:grid-cols-2">
           {product.benefits.length > 0 && (

@@ -44,15 +44,21 @@ export async function POST(req: Request) {
         label: v.label,
         price: v.price,
         stockLeft: v.stockLeft,
+        image: v.image,
         _id: v._id,
       })),
     } as Record<string, unknown>);
     const root = syncRootFromVariants(sanitized);
-    const variantDocs = sanitized.map((v) =>
-      v._id
-        ? { _id: v._id, label: v.label, price: v.price, stockLeft: v.stockLeft }
-        : { label: v.label, price: v.price, stockLeft: v.stockLeft }
-    );
+    const variantDocs = sanitized.map((v) => {
+      const base: Record<string, unknown> = {
+        label: v.label,
+        price: v.price,
+        stockLeft: v.stockLeft,
+      };
+      if (v._id) base._id = v._id;
+      if (v.image) base.image = v.image;
+      return base;
+    });
 
     await dbConnect();
     const images = Array.isArray(parsed.images)

@@ -40,7 +40,7 @@ export default function AdminProductsPage() {
       safetyNotes: "",
       currency: "INR",
       images: [] as string[],
-      variants: [{ label: "Standard", price: 0, stockLeft: 10 }],
+      variants: [{ label: "Standard", price: 0, stockLeft: 10, image: "" }],
       isActive: true,
     },
   });
@@ -160,6 +160,7 @@ export default function AdminProductsPage() {
                 typeof v.stockLeft === "number"
                   ? v.stockLeft
                   : Math.floor(Number(v.stockLeft) || 0),
+              image: typeof v.image === "string" ? v.image : "",
               _id: v._id ? String(v._id) : undefined,
             }))
           : [
@@ -199,7 +200,7 @@ export default function AdminProductsPage() {
         safetyNotes: "",
         currency: "INR",
         images: ["/products/spray.jpeg"],
-        variants: [{ label: "Standard", price: 0, stockLeft: 10 }],
+        variants: [{ label: "Standard", price: 0, stockLeft: 10, image: "" }],
         isActive: true,
       });
     }
@@ -352,7 +353,7 @@ export default function AdminProductsPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => appendVariant({ label: "", price: 0, stockLeft: 0 })}
+                    onClick={() => appendVariant({ label: "", price: 0, stockLeft: 0, image: "" })}
                     className="inline-flex items-center gap-1 rounded-xl border border-primary-200 bg-white px-3 py-2 text-sm font-semibold text-primary-800 hover:bg-primary-50"
                   >
                     <Plus className="h-4 w-4" />
@@ -362,9 +363,33 @@ export default function AdminProductsPage() {
                 {variantFields.map((field, index) => (
                   <div
                     key={field.id}
-                    className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-[1fr_minmax(0,120px)_minmax(0,120px)_auto]"
+                    className="space-y-3 rounded-xl border border-gray-200 bg-white p-4"
                   >
                     <input type="hidden" {...register(`variants.${index}._id` as const)} />
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+                      <div className="shrink-0 space-y-1">
+                        <label className="text-xs font-semibold text-gray-600">Variant image</label>
+                        <p className="text-[10px] text-gray-500 max-w-[200px] leading-snug">
+                          Optional. Shown first in the shop gallery when this size is selected.
+                        </p>
+                        <AdminImageUpload
+                          label=""
+                          folder="healinghands/products"
+                          value={
+                            (watch(`variants.${index}.image` as const) as string | undefined) || ""
+                          }
+                          onChange={(url) =>
+                            setValue(`variants.${index}.image` as const, url, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })
+                          }
+                          aspectClass="aspect-square w-full max-w-[120px]"
+                        />
+                      </div>
+                      <input type="hidden" {...register(`variants.${index}.image`)} />
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_minmax(0,120px)_minmax(0,120px)_auto]">
                     <div className="space-y-1">
                       <label className="text-xs font-semibold text-gray-600">Label</label>
                       <input
@@ -408,6 +433,7 @@ export default function AdminProductsPage() {
                       >
                         Remove
                       </button>
+                    </div>
                     </div>
                   </div>
                 ))}

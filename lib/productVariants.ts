@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { normalizeProductImageUrl } from "@/lib/normalizeProductImages";
 
 /** Sentinel id for products stored without a `variants` array (legacy root price/stock). */
 export const LEGACY_VARIANT_ID = "legacy";
@@ -9,6 +10,8 @@ export type PublicProductVariant = {
   price: number;
   stockLeft: number;
   inStock: boolean;
+  /** Normalized URL when this variant has its own image. */
+  image?: string;
 };
 
 export type PriceRangeMeta = {
@@ -28,12 +31,15 @@ export function getEffectiveVariants(product: Record<string, unknown>): PublicPr
   if (Array.isArray(raw) && raw.length > 0) {
     return raw.map((v: Record<string, unknown>) => {
       const stockLeft = stockLeftFromUnknown(v.stockLeft);
+      const imgRaw = typeof v.image === "string" ? v.image.trim() : "";
+      const image = imgRaw ? normalizeProductImageUrl(imgRaw) : undefined;
       return {
         id: v._id ? String(v._id) : "",
         label: String(v.label ?? "").trim() || "Variant",
         price: Number(v.price) || 0,
         stockLeft,
         inStock: stockLeft > 0,
+        ...(image ? { image } : {}),
       };
     });
   }
@@ -86,6 +92,7 @@ export type SanitizedVariantInput = {
   label: string;
   price: number;
   stockLeft: number;
+  image?: string;
   _id?: mongoose.Types.ObjectId;
 };
 
@@ -105,7 +112,10 @@ export function sanitizeVariantsFromAdminBody(body: Record<string, unknown>): Sa
       idRaw && mongoose.Types.ObjectId.isValid(String(idRaw))
         ? new mongoose.Types.ObjectId(String(idRaw))
         : undefined;
-    out.push(_id ? { _id, label, price, stockLeft } : { label, price, stockLeft });
+    const imgRaw = typeof v.image === "string" ? v.image.trim() : "";
+    const image = imgRaw ? normalizeProductImageUrl(imgRaw) : undefined;
+    const row = { label, price, stockLeft, ...(image ? { image } : {}) };
+    out.push(_id ? { ...row, _id } : row);
   }
   if (out.length === 0) {
     const price = Math.max(0, Number(body.price) || 0);

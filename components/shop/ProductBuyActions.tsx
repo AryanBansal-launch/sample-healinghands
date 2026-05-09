@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 
 export type ProductBuyActionsProduct = {
@@ -17,6 +17,7 @@ export type ProductBuyActionsProduct = {
     price: number;
     stockLeft: number;
     inStock: boolean;
+    image?: string;
   }[];
   priceRange: { min: number; max: number; showFrom: boolean };
 };
@@ -25,16 +26,19 @@ function money(currency: string, n: number) {
   return currency === "INR" ? `₹${n}` : `${currency} ${n}`;
 }
 
-export default function ProductBuyActions({ product }: { product: ProductBuyActionsProduct }) {
+function isRemote(src: string) {
+  return src.startsWith("http://") || src.startsWith("https://");
+}
+
+type Props = {
+  product: ProductBuyActionsProduct;
+  selectedVariantId: string;
+  onSelectVariant: (id: string) => void;
+};
+
+export default function ProductBuyActions({ product, selectedVariantId, onSelectVariant }: Props) {
   const { variants, currency, priceRange } = product;
-  const [vid, setVid] = useState<string>("");
-
-  useEffect(() => {
-    const first = variants.find((v) => v.inStock) ?? variants[0];
-    setVid(first?.id ?? "");
-  }, [variants]);
-
-  const selected = variants.find((v) => v.id === vid);
+  const selected = variants.find((v) => v.id === selectedVariantId);
   const showVariantPicker = variants.length > 1;
   const displayPrice = selected ? selected.price : product.price;
   const priceTitle = showVariantPicker
@@ -47,7 +51,7 @@ export default function ProductBuyActions({ product }: { product: ProductBuyActi
     selected && typeof selected.stockLeft === "number" ? selected.stockLeft : product.stockLeft;
   const canBuy = Boolean(product.inStock && selected?.inStock);
   const buyHref = `/shop?open=${encodeURIComponent(product.slug)}${
-    vid ? `&variant=${encodeURIComponent(vid)}` : ""
+    selectedVariantId ? `&variant=${encodeURIComponent(selectedVariantId)}` : ""
   }`;
 
   return (
@@ -72,8 +76,8 @@ export default function ProductBuyActions({ product }: { product: ProductBuyActi
                 <label
                   key={v.id}
                   htmlFor={inputId}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                    vid === v.id
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors sm:px-4 sm:py-3 ${
+                    selectedVariantId === v.id
                       ? "border-primary-600 bg-white shadow-sm ring-1 ring-primary-600/20"
                       : "border-gray-200 bg-white/80 hover:border-primary-300"
                   } ${!v.inStock ? "cursor-not-allowed opacity-50" : ""}`}
@@ -83,12 +87,24 @@ export default function ProductBuyActions({ product }: { product: ProductBuyActi
                     type="radio"
                     name={`product-variant-${product.slug}`}
                     value={v.id}
-                    checked={vid === v.id}
+                    checked={selectedVariantId === v.id}
                     disabled={!v.inStock}
-                    onChange={() => setVid(v.id)}
+                    onChange={() => onSelectVariant(v.id)}
                     className="h-4 w-4 shrink-0 border-gray-300 text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                  {v.image ? (
+                    <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      <Image
+                        src={v.image}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                        unoptimized={isRemote(v.image)}
+                      />
+                    </span>
+                  ) : null}
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                     <span className="font-medium text-gray-900">{v.label}</span>
                     <span className="text-sm font-semibold text-primary-800 sm:text-base">
                       {money(currency, v.price)}
