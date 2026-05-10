@@ -6,13 +6,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookingSchema } from "@/lib/validators";
 import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, RefreshCw } from "lucide-react";
 
 export default function BookSessionPage() {
   const minBookingDate = useMemo(() => todayYyyyMmDdInBookingTZ(), []);
   const [services, setServices] = useState<any[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsLoadError, setSlotsLoadError] = useState<string | null>(null);
+  const [slotsRetryTick, setSlotsRetryTick] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -44,24 +46,40 @@ export default function BookSessionPage() {
     if (!dateReady) {
       setTimeSlots([]);
       setSlotsLoading(false);
+      setSlotsLoadError(null);
       setValue("preferredTime", "");
       return () => {
         cancelled = true;
       };
     }
     const loadSlots = async () => {
+      setSlotsLoadError(null);
       setValue("preferredTime", "");
       setSlotsLoading(true);
       try {
         const url = `/api/booking-slots?date=${encodeURIComponent(String(preferredDate).slice(0, 10))}`;
         const res = await fetch(url);
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
         if (!cancelled) {
+          if (!res.ok) {
+            setTimeSlots([]);
+            const msg =
+              typeof (data as { error?: string }).error === "string"
+                ? (data as { error: string }).error
+                : `Could not load times (${res.status}).`;
+            setSlotsLoadError(msg);
+            return;
+          }
           setTimeSlots(Array.isArray(data.slots) ? data.slots : []);
         }
       } catch (err) {
         console.error(err);
-        if (!cancelled) setTimeSlots([]);
+        if (!cancelled) {
+          setTimeSlots([]);
+          setSlotsLoadError(
+            "Could not load available times. Check your connection and tap Retry below."
+          );
+        }
       } finally {
         if (!cancelled) setSlotsLoading(false);
       }
@@ -70,7 +88,7 @@ export default function BookSessionPage() {
     return () => {
       cancelled = true;
     };
-  }, [preferredDate, dateReady, setValue]);
+  }, [preferredDate, dateReady, setValue, slotsRetryTick]);
 
   useEffect(() => {
     if (!preferredTime || !timeSlots.length) return;
@@ -136,7 +154,11 @@ export default function BookSessionPage() {
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">Book a Session</h1>
-          <p className="text-gray-600">Fill in the details below and we&apos;ll get back to you shortly.</p>
+          <p className="text-gray-600 max-w-xl mx-auto">
+            Fill in the details below. We typically respond within one business day on WhatsApp. Sessions
+            include complementary wellness guidance where helpful—your booking is a conversation, not just a
+            calendar slot.
+          </p>
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100">
@@ -211,9 +233,11 @@ export default function BookSessionPage() {
                       ? "Select a date first…"
                       : slotsLoading
                         ? "Loading times…"
-                        : timeSlots.length === 0
-                          ? "No slots — contact us"
-                          : "Select time"}
+                        : slotsLoadError
+                          ? "Could not load times — retry below"
+                          : timeSlots.length === 0
+                            ? "No slots — contact us"
+                            : "Select time"}
                   </option>
                   {timeSlots.map((t) => (
                     <option key={t} value={t}>
@@ -242,7 +266,23 @@ export default function BookSessionPage() {
                 {errors.preferredTime && (
                   <p className="mt-1 text-xs text-red-500">{errors.preferredTime.message as string}</p>
                 )}
-                {!slotsLoading && timeSlots.length === 0 && (
+                {slotsLoadError && dateReady && (
+                  <div
+                    className="mt-3 flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-900 sm:flex-row sm:items-center sm:justify-between"
+                    role="alert"
+                  >
+                    <span>{slotsLoadError}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSlotsRetryTick((n) => n + 1)}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 shadow-sm hover:bg-red-50"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                      Retry
+                    </button>
+                  </div>
+                )}
+                {!slotsLoading && !slotsLoadError && timeSlots.length === 0 && (
                   <p className="mt-1 text-xs text-amber-700">
                     {preferredDate && String(preferredDate).trim()
                       ? "No open slots left on this date (or none configured). Try another date, or use "
@@ -253,7 +293,7 @@ export default function BookSessionPage() {
                     {preferredDate && String(preferredDate).trim() ? " to request a time." : " to arrange a session."}
                   </p>
                 )}
-                {!slotsLoading && timeSlots.length > 0 && preferredDate && String(preferredDate).trim() && (
+                {!slotsLoading && !slotsLoadError && timeSlots.length > 0 && preferredDate && String(preferredDate).trim() && (
                   <p className="mt-1 text-xs text-gray-500">
                     Only times still available for this date are listed. A pending or confirmed booking
                     removes that slot for the day (rejecting a request frees it again).

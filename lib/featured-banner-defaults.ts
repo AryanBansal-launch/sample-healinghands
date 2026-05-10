@@ -14,6 +14,8 @@ export const DEFAULT_FEATURED_BANNER_CONTENT = [
 export const FEATURED_BANNER_SETTING_DEFAULTS: Record<string, string> = {
   featuredBannerEnabled: DEFAULT_FEATURED_BANNER_ENABLED,
   featuredBannerContent: DEFAULT_FEATURED_BANNER_CONTENT,
+  /** One-line summary for the compact session banner (after first modal view). */
+  featuredBannerHeadline: "Healing Bliss Aromatherapy Mist — Aura Cleansing Spray",
   /** Chip above the headline (short, punchy). */
   featuredBannerBadgeLabel: "Featured · Healing Bliss mist",
   /** Product photo under `public/` (not the flat label artwork). */

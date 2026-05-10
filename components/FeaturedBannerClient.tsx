@@ -1,18 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShoppingBag, Sparkles, X } from "lucide-react";
 import FeaturedBannerBody from "@/components/FeaturedBannerBody";
+import FeaturedBannerStrip from "@/components/FeaturedBannerStrip";
 
 const STORAGE_KEY = "hh_featured_banner_dismissed_digest";
+
+function sessionModalShownKey(digest: string) {
+  return `hh_featured_full_modal_shown_${digest}`;
+}
 
 type Props = {
   content: string;
   digest: string;
   badgeLabel: string;
+  headline: string;
   productImageSrc: string;
   ctaHref: string;
   ctaLabel: string;
@@ -22,18 +28,24 @@ function isRemoteSrc(src: string) {
   return src.startsWith("http://") || src.startsWith("https://");
 }
 
+type ResolvedMode = "pending" | "hidden" | "modal" | "strip";
+
 export default function FeaturedBannerClient({
   content,
   digest,
   badgeLabel,
+  headline,
   productImageSrc,
   ctaHref,
   ctaLabel,
 }: Props) {
-  const [open, setOpen] = useState(true);
+  const [mode, setMode] = useState<ResolvedMode>("pending");
+  const [modalOpen, setModalOpen] = useState(true);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   const dismiss = useCallback(() => {
-    setOpen(false);
+    setModalOpen(false);
+    setMode("hidden");
     try {
       localStorage.setItem(STORAGE_KEY, digest);
     } catch {
@@ -44,37 +56,78 @@ export default function FeaturedBannerClient({
   useEffect(() => {
     try {
       if (localStorage.getItem(STORAGE_KEY) === digest) {
-        setOpen(false);
+        setMode("hidden");
+        return;
       }
+      if (sessionStorage.getItem(sessionModalShownKey(digest)) === "1") {
+        setMode("strip");
+        return;
+      }
+      setMode("modal");
     } catch {
-      // ignore
+      setMode("modal");
     }
   }, [digest]);
 
+  /** After first full-screen modal this tab session, later navigations use the compact strip. */
   useEffect(() => {
-    if (!open) return;
+    if (mode !== "modal" || !modalOpen) return;
+    try {
+      sessionStorage.setItem(sessionModalShownKey(digest), "1");
+    } catch {
+      // ignore
+    }
+  }, [mode, modalOpen, digest]);
+
+  useEffect(() => {
+    if (mode !== "modal" || !modalOpen) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [open]);
+  }, [mode, modalOpen]);
 
   useEffect(() => {
-    if (!open) return;
+    if (mode !== "modal" || !modalOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") dismiss();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, dismiss]);
+  }, [mode, modalOpen, dismiss]);
+
+  useEffect(() => {
+    if (mode !== "modal" || !modalOpen) return;
+    const id = window.requestAnimationFrame(() => {
+      closeBtnRef.current?.focus();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [mode, modalOpen, digest]);
 
   const showCta = Boolean(ctaHref && ctaLabel);
   const ctaExternal = ctaHref.startsWith("http://") || ctaHref.startsWith("https://");
 
+  if (mode === "pending" || mode === "hidden") {
+    return null;
+  }
+
+  if (mode === "strip") {
+    return (
+      <FeaturedBannerStrip
+        badgeLabel={badgeLabel}
+        headline={headline}
+        productImageSrc={productImageSrc}
+        ctaHref={ctaHref}
+        ctaLabel={ctaLabel}
+        onDismiss={dismiss}
+      />
+    );
+  }
+
   return (
     <AnimatePresence mode="sync">
-      {open && (
+      {modalOpen && (
         <motion.div
           key={digest}
           role="presentation"
@@ -109,6 +162,7 @@ export default function FeaturedBannerClient({
             <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-lavender-400/30 blur-3xl" />
 
             <button
+              ref={closeBtnRef}
               type="button"
               onClick={dismiss}
               className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-gray-700 shadow-md ring-1 ring-gray-200/90 transition hover:bg-white hover:text-gray-900 hover:ring-primary-300/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
@@ -134,7 +188,10 @@ export default function FeaturedBannerClient({
                     <Sparkles className="h-4 w-4 shrink-0 text-gold-600" aria-hidden />
                     {badgeLabel}
                   </div>
-                  <p className="mt-2 text-sm leading-snug text-gray-600 sm:text-[15px]">
+                  <p
+                    id="featured-banner-title"
+                    className="mt-2 text-sm leading-snug text-gray-600 sm:text-[15px]"
+                  >
                     Aromatherapy aura mist · repel negativity, protect your field—corners, doorways &
                     everyday spaces.
                   </p>

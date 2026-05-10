@@ -20,6 +20,7 @@ export default function AdminProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [formMessage, setFormMessage] = useState<{ type: "error"; text: string } | null>(null);
 
   const {
     register,
@@ -95,6 +96,7 @@ export default function AdminProductsPage() {
   };
 
   const onSubmit = async (data: any) => {
+    setFormMessage(null);
     setSubmitting(true);
     try {
       const payload = {
@@ -122,11 +124,14 @@ export default function AdminProductsPage() {
         closeModal();
       } else {
         const errBody = await res.json().catch(() => ({}));
-        alert(errBody.error || `Save failed (${res.status})`);
+        setFormMessage({
+          type: "error",
+          text: String(errBody.error || `Save failed (${res.status})`),
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Network error while saving.");
+      setFormMessage({ type: "error", text: "Network error while saving." });
     } finally {
       setSubmitting(false);
     }
@@ -135,7 +140,7 @@ export default function AdminProductsPage() {
   const onFormError = (errs: typeof errors) => {
     const first = Object.values(errs)[0];
     const msg = first && typeof first === "object" && "message" in first ? String(first.message) : null;
-    if (msg) alert(msg);
+    if (msg) setFormMessage({ type: "error", text: msg });
   };
 
   const handleDelete = async (id: string) => {
@@ -204,12 +209,14 @@ export default function AdminProductsPage() {
         isActive: true,
       });
     }
+    setFormMessage(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProduct(null);
+    setFormMessage(null);
     reset();
   };
 
@@ -313,6 +320,14 @@ export default function AdminProductsPage() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit, onFormError)} className="p-8 space-y-6 overflow-y-auto">
+              {formMessage && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                >
+                  {formMessage.text}
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold">Product Name</label>

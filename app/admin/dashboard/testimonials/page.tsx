@@ -18,6 +18,8 @@ export default function AdminTestimonialsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [formMessage, setFormMessage] = useState<{ type: "error"; text: string } | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
 
   const {
     register,
@@ -59,6 +61,7 @@ export default function AdminTestimonialsPage() {
   );
 
   const onSubmit = async (data: TestimonialForm) => {
+    setFormMessage(null);
     setSubmitting(true);
     try {
       const url = editing
@@ -79,11 +82,14 @@ export default function AdminTestimonialsPage() {
         closeModal();
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error || `Save failed (${res.status})`);
+        setFormMessage({
+          type: "error",
+          text: String(err.error || `Save failed (${res.status})`),
+        });
       }
     } catch (e) {
       console.error(e);
-      alert("Network error");
+      setFormMessage({ type: "error", text: "Network error. Please try again." });
     } finally {
       setSubmitting(false);
     }
@@ -95,10 +101,11 @@ export default function AdminTestimonialsPage() {
       first && typeof first === "object" && "message" in first
         ? String((first as { message?: string }).message)
         : null;
-    if (msg) alert(msg);
+    if (msg) setFormMessage({ type: "error", text: msg });
   };
 
   const approve = async (t: any) => {
+    setApproveError(null);
     try {
       const res = await fetch(`/api/admin/testimonials/${t._id}`, {
         method: "PUT",
@@ -115,9 +122,15 @@ export default function AdminTestimonialsPage() {
         }),
       });
       if (res.ok) fetchAll();
-      else alert("Approve failed");
+      else {
+        const body = await res.json().catch(() => ({}));
+        setApproveError(
+          typeof body.error === "string" ? body.error : `Approve failed (${res.status}).`
+        );
+      }
     } catch (e) {
       console.error(e);
+      setApproveError("Could not approve. Check your connection and try again.");
     }
   };
 
@@ -157,12 +170,14 @@ export default function AdminTestimonialsPage() {
         submitterEmail: "",
       });
     }
+    setFormMessage(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditing(null);
+    setFormMessage(null);
     reset();
   };
 
@@ -172,6 +187,15 @@ export default function AdminTestimonialsPage() {
 
   return (
     <div className="space-y-8">
+      {approveError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          {approveError}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <h1 className="font-serif text-2xl font-bold text-gray-900 sm:text-3xl">Testimonials</h1>
         <button
@@ -315,6 +339,14 @@ export default function AdminTestimonialsPage() {
                 onSubmit={handleSubmit(onSubmit, onFormError)}
                 className="space-y-5 overflow-y-auto p-8"
               >
+                {formMessage && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                  >
+                    {formMessage.text}
+                  </div>
+                )}
                 <div className="space-y-1">
                   <label className="text-sm font-semibold">Client name (as shown on site)</label>
                   <input

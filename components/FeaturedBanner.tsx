@@ -14,6 +14,7 @@ export default async function FeaturedBanner() {
   const digest = featuredBannerDigest(
     [
       content,
+      settings.featuredBannerHeadline ?? "",
       settings.featuredBannerBadgeLabel ?? "",
       settings.featuredBannerProductImage ?? "",
       settings.featuredBannerCtaHref ?? "",
@@ -26,6 +27,10 @@ export default async function FeaturedBanner() {
       content={content}
       digest={digest}
       badgeLabel={(settings.featuredBannerBadgeLabel ?? "").trim() || "Featured"}
+      headline={
+        (settings.featuredBannerHeadline ?? "").trim() ||
+        "Healing Bliss Aromatherapy Mist — Aura Cleansing Spray"
+      }
       productImageSrc={(settings.featuredBannerProductImage ?? "").trim() || "/products/spray.jpeg"}
       ctaHref={(settings.featuredBannerCtaHref ?? "").trim()}
       ctaLabel={(settings.featuredBannerCtaLabel ?? "").trim()}

@@ -16,6 +16,7 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [formMessage, setFormMessage] = useState<{ type: "error"; text: string } | null>(null);
 
   const {
     register,
@@ -65,6 +66,7 @@ export default function AdminServicesPage() {
   };
 
   const onSubmit = async (data: any) => {
+    setFormMessage(null);
     setSubmitting(true);
     try {
       const submissionData = {
@@ -97,20 +99,27 @@ export default function AdminServicesPage() {
         fetchServices();
         closeModal();
       } else {
-        const errData = await res.json();
-        alert(`Error: ${errData.error || 'Failed to save service'}`);
+        const errData = await res.json().catch(() => ({}));
+        setFormMessage({
+          type: "error",
+          text: `Error: ${typeof errData.error === "string" ? errData.error : "Failed to save service"}`,
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("An unexpected error occurred.");
+      setFormMessage({ type: "error", text: "An unexpected error occurred." });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const onFormError = (errs: any) => {
-    console.log("Form Validation Errors:", errs);
-    // You could also set a state here to show a global error message
+  const onFormError = (errs: Record<string, unknown>) => {
+    const first = Object.values(errs)[0];
+    const msg =
+      first && typeof first === "object" && first !== null && "message" in first
+        ? String((first as { message?: string }).message)
+        : "Please correct the highlighted fields.";
+    setFormMessage({ type: "error", text: msg });
   };
 
   const handleDelete = async (id: string) => {
@@ -149,12 +158,14 @@ export default function AdminServicesPage() {
         isActive: true,
       });
     }
+    setFormMessage(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingService(null);
+    setFormMessage(null);
     reset();
   };
 
@@ -236,6 +247,14 @@ export default function AdminServicesPage() {
               </div>
 
               <form onSubmit={handleSubmit(onSubmit, onFormError)} className="p-8 space-y-6 overflow-y-auto">
+                {formMessage && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                  >
+                    {formMessage.text}
+                  </div>
+                )}
                 {Object.keys(errors).length > 0 && (
                   <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100">
                     Please correct the errors before saving.

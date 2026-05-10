@@ -475,7 +475,24 @@ function ShopPageInner() {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="pt-6 border-t border-gray-100 space-y-4">
+                  <ul className="list-disc space-y-1 pl-5 text-sm text-gray-600">
+                    <li>
+                      Shipping across India—use your complete address so we can dispatch without delays.
+                    </li>
+                    <li>
+                      After you submit, we&apos;ll open WhatsApp with your order summary so you can confirm and
+                      coordinate payment &amp; delivery.
+                    </li>
+                    <li>
+                      Prefer human help first? Use{" "}
+                      <Link href="/contact" className="font-semibold text-primary-700 underline">
+                        Contact
+                      </Link>{" "}
+                      anytime.
+                    </li>
+                  </ul>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-gray-600">
                     Total Amount:{" "}
                     <span className="text-2xl font-bold text-gray-900 ml-2">
@@ -494,6 +511,7 @@ function ShopPageInner() {
                   >
                     {purchaseSubmitting ? "Submitting…" : "Proceed to Purchase"}
                   </button>
+                  </div>
                 </div>
               </form>
             </motion.div>

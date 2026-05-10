@@ -95,9 +95,11 @@ export default function Footer() {
                   Testimonials
                 </Link>
               </li>
-              <Link href="/contact" className="text-primary-200 hover:text-white transition-colors">
-                Contact
-              </Link>
+              <li>
+                <Link href="/contact" className="text-primary-200 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

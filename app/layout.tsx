@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import FeaturedBanner from '@/components/FeaturedBanner'
 import ChatbaseWidget from '@/components/ChatbaseWidget'
+import ChatbaseHint from '@/components/ChatbaseHint'
 import OrganizationJsonLd from '@/components/OrganizationJsonLd'
 import { getSiteUrl } from '@/lib/site-url'
 
@@ -90,6 +91,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <ChatbaseWidget />
+        <ChatbaseHint />
       </body>
     </html>
   )
