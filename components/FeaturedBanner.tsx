@@ -11,7 +11,24 @@ export default async function FeaturedBanner() {
     return null;
   }
 
-  const digest = featuredBannerDigest(content);
+  const digest = featuredBannerDigest(
+    [
+      content,
+      settings.featuredBannerBadgeLabel ?? "",
+      settings.featuredBannerProductImage ?? "",
+      settings.featuredBannerCtaHref ?? "",
+      settings.featuredBannerCtaLabel ?? "",
+    ].join("|")
+  );
 
-  return <FeaturedBannerClient content={content} digest={digest} />;
+  return (
+    <FeaturedBannerClient
+      content={content}
+      digest={digest}
+      badgeLabel={(settings.featuredBannerBadgeLabel ?? "").trim() || "Featured"}
+      productImageSrc={(settings.featuredBannerProductImage ?? "").trim() || "/products/spray.jpeg"}
+      ctaHref={(settings.featuredBannerCtaHref ?? "").trim()}
+      ctaLabel={(settings.featuredBannerCtaLabel ?? "").trim()}
+    />
+  );
 }

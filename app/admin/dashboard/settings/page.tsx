@@ -12,6 +12,10 @@ const SETTING_LABELS: Record<string, string> = {
   whatsapp: "WhatsApp",
   tagline: "Tagline",
   featuredBannerEnabled: "Featured banner — show on site",
+  featuredBannerBadgeLabel: "Featured banner — chip label (short, e.g. “Featured · Aura cleansing spray”)",
+  featuredBannerProductImage: "Featured banner — product image path (/products/...) or full image URL",
+  featuredBannerCtaHref: "Featured banner — primary button link (e.g. /shop/healing-bliss-spray)",
+  featuredBannerCtaLabel: "Featured banner — primary button text",
   featuredBannerContent: "Featured banner — full message (line breaks preserved)",
   founderPracticeVideoUrl:
     "Founder video — upload to Cloudinary below, or paste a YouTube / direct video URL. Same clip is used on Home (teaser) and About (full).",
@@ -36,10 +40,22 @@ function sortSettings<T extends { key: string }>(list: T[]): T[] {
     return 3;
   };
 
+  const featuredOrder = [
+    "featuredBannerEnabled",
+    "featuredBannerBadgeLabel",
+    "featuredBannerProductImage",
+    "featuredBannerContent",
+    "featuredBannerCtaHref",
+    "featuredBannerCtaLabel",
+  ];
+
   return [...list].sort((a, b) => {
     const ra = rank(a.key);
     const rb = rank(b.key);
     if (ra !== rb) return ra - rb;
+    if (a.key.startsWith("featuredBanner") && b.key.startsWith("featuredBanner")) {
+      return featuredOrder.indexOf(a.key) - featuredOrder.indexOf(b.key);
+    }
     if (a.key.startsWith("founderPractice") && b.key.startsWith("founderPractice")) {
       return founderKeyOrder(a.key) - founderKeyOrder(b.key);
     }

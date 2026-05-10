@@ -73,7 +73,7 @@ export default function FeaturedBannerBody({ content }: Props) {
     return (
       <div className="space-y-3 font-serif text-[15px] leading-relaxed text-gray-800 sm:text-base">
         {blocks[0].split("\n").map((line, i) => (
-          <p key={i} className={i > 0 ? "mt-2" : ""}>
+          <p key={i} id={i === 0 ? "featured-banner-title" : undefined} className={i > 0 ? "mt-2" : ""}>
             {linkifyPhones(line)}
           </p>
         ))}
@@ -95,6 +95,7 @@ export default function FeaturedBannerBody({ content }: Props) {
         if (isFirst) {
           return (
             <h2
+              id="featured-banner-title"
               key={i}
               className="font-serif text-xl font-semibold leading-snug tracking-tight text-primary-950 sm:text-2xl"
             >

@@ -8,6 +8,7 @@ import { BOOKING_SLOTS_SETTING_DEFAULTS } from "../lib/booking-time-slots";
 import {
   DEFAULT_FEATURED_BANNER_CONTENT,
   DEFAULT_FEATURED_BANNER_ENABLED,
+  FEATURED_BANNER_SETTING_DEFAULTS,
 } from "../lib/featured-banner-defaults";
 import { FOUNDER_PRACTICE_VIDEO_DEFAULTS } from "../lib/founder-practice-video";
 import { DEFAULT_PUBLIC_CONTACT_EMAIL } from "../lib/public-contact";
@@ -35,6 +36,10 @@ const SITE_SETTINGS_DEFAULTS: { key: string; value: string }[] = [
   { key: "whatsapp", value: "919217046526" },
   { key: "tagline", value: "Healing starts from within" },
   { key: "featuredBannerEnabled", value: DEFAULT_FEATURED_BANNER_ENABLED },
+  { key: "featuredBannerBadgeLabel", value: FEATURED_BANNER_SETTING_DEFAULTS.featuredBannerBadgeLabel },
+  { key: "featuredBannerProductImage", value: FEATURED_BANNER_SETTING_DEFAULTS.featuredBannerProductImage },
+  { key: "featuredBannerCtaHref", value: FEATURED_BANNER_SETTING_DEFAULTS.featuredBannerCtaHref },
+  { key: "featuredBannerCtaLabel", value: FEATURED_BANNER_SETTING_DEFAULTS.featuredBannerCtaLabel },
   { key: "featuredBannerContent", value: DEFAULT_FEATURED_BANNER_CONTENT },
   { key: "bookingTimeSlots", value: BOOKING_SLOTS_SETTING_DEFAULTS.bookingTimeSlots },
   { key: "founderPracticeVideoUrl", value: FOUNDER_PRACTICE_VIDEO_DEFAULTS.founderPracticeVideoUrl },
